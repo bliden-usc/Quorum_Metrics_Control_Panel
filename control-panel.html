@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Schaeffer Pipeline — Control Panel</title>
+  <style>
+    /* =========================================================
+       USC SCHAEFFER METRICS — PIPELINE CONTROL PANEL
+       Standalone HTML, no external dependencies.
+       Designed for local use by Schaeffer Center staff.
+
+       Color palette matches the weekly email reports:
+         Cardinal red  #990000
+         Gold          #FFCC00
+         Light bg      #f9f9f9
+         Border        #ddd
+    ========================================================= */
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #e8e8e8;
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      color: #333;
+      font-size: 15px;
+    }
+
+    /* ---------- page shell ---------- */
+    .page-wrap {
+      max-width: 760px;
+      margin: 32px auto 48px;
+      padding: 0 16px;
+    }
+
+    /* ---------- site header (matches email header exactly) ---------- */
+    .site-header {
+      background: #990000;
+      color: #fff;
+      padding: 20px 28px;
+      border-bottom: 4px solid #FFCC00;
+      border-radius: 3px 3px 0 0;
+    }
+    .site-header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .site-header p {
+      margin: 5px 0 0;
+      font-size: 13px;
+      opacity: 0.78;
+    }
+
+    /* ---------- cards ---------- */
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-top: none;
+      padding: 24px 28px;
+      margin-bottom: 0; /* cards stack flush */
+    }
+    .card + .card {
+      border-top: 1px solid #ddd;
+    }
+    .card:last-child {
+      border-radius: 0 0 3px 3px;
+    }
+
+    .card-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #990000;
+    }
+
+    .card-sub {
+      margin: 0 0 18px;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.55;
+    }
+
+    /* ---------- badges ---------- */
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-yellow { background: #FFCC00; color: #555; }
+    .badge-gray   { background: #ccc;    color: #555; }
+    .badge-green  { background: #d4edda; color: #1a5c2a; }
+    .badge-red    { background: #f8d7da; color: #721c24; }
+
+    /* ---------- step numbers ---------- */
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #990000;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ---------- buttons ---------- */
+    .btn {
+      display: inline-block;
+      padding: 9px 22px;
+      border: none;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, background 0.15s;
+      letter-spacing: 0.01em;
+    }
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary {
+      background: #990000;
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { background: #7a0000; }
+
+    .btn-gold {
+      background: #FFCC00;
+      color: #333;
+    }
+    .btn-gold:hover:not(:disabled) { background: #e6b800; }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ---------- result boxes ---------- */
+    .result-box {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 3px;
+      font-size: 14px;
+      line-height: 1.5;
+      display: none; /* shown by JS */
+      border-left: 4px solid transparent;
+    }
+    .result-box.loading {
+      display: block;
+      background: #f0f4ff;
+      border-color: #5b8dee;
+      color: #2c4da0;
+    }
+    .result-box.success {
+      display: block;
+      background: #d4edda;
+      border-color: #28a745;
+      color: #1a5c2a;
+    }
+    .result-box.warn {
+      display: block;
+      background: #fff3cd;
+      border-color: #e6ac00;
+      color: #856404;
+    }
+    .result-box.error {
+      display: block;
+      background: #f8d7da;
+      border-color: #dc3545;
+      color: #721c24;
+    }
+
+    /* ---------- warning note ---------- */
+    .warn-note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #fff8e1;
+      border-left: 4px solid #FFCC00;
+      font-size: 13px;
+      color: #5a4400;
+      border-radius: 0 3px 3px 0;
+    }
+
+    /* ---------- status grid ---------- */
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .status-item {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      padding: 12px 16px;
+    }
+    .status-item label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .status-item .status-val {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* ---------- config — live panel ---------- */
+    .config-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    .config-field + .config-field { margin-top: 14px; }
+
+    .config-group {
+      margin-bottom: 22px;
+    }
+    .config-group-heading {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #990000;
+      border-bottom: 1px solid #e8d0d0;
+      padding-bottom: 5px;
+      margin-bottom: 14px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /*
+     * Interactive toggle switch — wraps a hidden checkbox.
+     * The .toggle-switch label is the visual element; the real
+     * checkbox (role=switch) drives actual state.
+     */
+    .toggle-switch-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .toggle-switch-wrap input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-switch {
+      width: 40px;
+      height: 22px;
+      background: #ccc;
+      border-radius: 11px;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px; /* OFF position */
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: left 0.2s;
+    }
+    .toggle-switch-wrap input:checked + .toggle-switch {
+      background: #FFCC00;
+    }
+    .toggle-switch-wrap input:checked + .toggle-switch::after {
+      left: 21px; /* ON position */
+    }
+    .toggle-label { font-size: 13px; color: #555; }
+
+    textarea.config-ta {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: vertical;
+    }
+
+    .config-text-input,
+    .config-number-input,
+    .config-date-input,
+    .config-select {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 13px;
+      background: #fff;
+    }
+    .config-number-input { max-width: 160px; }
+    .config-date-input   { max-width: 200px; }
+
+    #config-load-status {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 14px;
+      min-height: 18px;
+    }
+    #config-load-status.ok  { color: #1a5c2a; }
+    #config-load-status.err { color: #721c24; }
+
+    /* ---------- system mode banner ---------- */
+    .mode-banner {
+      padding: 13px 28px;
+      border-top: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .mode-banner-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .mode-banner.mode-production {
+      background: #d4edda;
+      border-bottom: 1px solid #b8dfc4;
+      color: #1a5c2a;
+    }
+    .mode-banner.mode-production .mode-banner-dot { background: #28a745; }
+    .mode-banner.mode-paused {
+      background: #fff3cd;
+      border-bottom: 1px solid #f0d080;
+      color: #856404;
+    }
+    .mode-banner.mode-paused .mode-banner-dot { background: #e6ac00; }
+    .mode-banner.mode-dev {
+      background: #fff8e1;
+      border-bottom: 1px solid #ffe082;
+      color: #5a4400;
+    }
+    .mode-banner.mode-dev .mode-banner-dot { background: #f57c00; }
+    .mode-banner.mode-unknown {
+      background: #f4f4f4;
+      border-bottom: 1px solid #ddd;
+      color: #888;
+    }
+    .mode-banner.mode-unknown .mode-banner-dot { background: #aaa; }
+    .mode-banner-text strong { font-weight: 700; }
+    .mode-banner-text span   { font-weight: 400; opacity: 0.8; }
+
+    /* ---------- dev mode warning banner ---------- */
+    /* Shown below the system mode banner when TEST_MODE=true; hidden by JS when off */
+    .dev-mode-banner {
+      padding: 11px 28px;
+      background: #fff3cd;
+      border-bottom: 3px solid #f57c00;
+      color: #5a4400;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+
+    /* ---------- admin card ---------- */
+    .admin-card {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-top: 1px solid #ddd;
+      padding: 20px 28px;
+      margin-bottom: 0;
+      border-radius: 0 0 3px 3px;
+    }
+    .admin-card-heading {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin: 0 0 12px;
+    }
+
+    /* ---------- collapsible admin controls ---------- */
+    .admin-controls-details {
+      border: 1px solid #ddd;
+      border-top: none;
+      background: #f9f9f9;
+      border-radius: 0 0 3px 3px;
+    }
+    .admin-controls-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 28px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      list-style: none;
+      border-radius: 0 0 3px 3px;
+    }
+    .admin-controls-summary::-webkit-details-marker { display: none; }
+    .admin-controls-summary:hover { background: #efefef; }
+    .admin-controls-chevron {
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+    details[open].admin-controls-details .admin-controls-chevron { transform: rotate(180deg); }
+    details[open].admin-controls-details .admin-controls-summary { border-radius: 0; }
+    .admin-controls-content > .card { border-top: 1px solid #ddd; border-left: none; border-right: none; border-bottom: none; border-radius: 0; }
+    .admin-controls-content > .admin-card { border-left: none; border-right: none; border-top: 1px solid #ddd; border-bottom: none; border-radius: 0 0 3px 3px; }
+    .btn-pause {
+      background: #fff;
+      color: #721c24;
+      border: 1px solid #dc3545;
+    }
+    .btn-pause:hover:not(:disabled) { background: #f8d7da; }
+    .btn-resume {
+      background: #fff;
+      color: #1a5c2a;
+      border: 1px solid #28a745;
+    }
+    .btn-resume:hover:not(:disabled) { background: #d4edda; }
+
+    /* ---------- footer ---------- */
+    .page-footer {
+      margin-top: 18px;
+      font-size: 11px;
+      color: #888;
+      text-align: center;
+      border-top: 1px solid #ccc;
+      padding-top: 12px;
+    }
+
+    /* ---------- spinner ---------- */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* ---------- pipeline status panel (Change 3) ---------- */
+    @keyframes pulse {
+      0%, 100% { opacity: 1;   transform: scale(1);    }
+      50%       { opacity: 0.4; transform: scale(0.85); }
+    }
+    .status-pulse-row {
+      display: none; /* shown by JS after trigger fires */
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #555;
+    }
+    .status-pulse-row.visible { display: flex; }
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #990000;
+      flex-shrink: 0;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .status-log {
+      display: none; /* shown by JS after trigger fires */
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      color: #333;
+      max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.65;
+    }
+    .status-log.visible { display: block; }
+    .status-log-entry { margin: 0; white-space: pre-wrap; }
+    .status-log-entry.ok   { color: #1a5c2a; }
+    .status-log-entry.warn { color: #856404; }
+    .status-log-entry.err  { color: #721c24; }
+
+    /* ---------- report options checkboxes (Change 2) ---------- */
+    .report-options-row {
+      margin-top: 14px;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      padding: 14px 16px;
+      grid-column: 1 / -1;
+    }
+    .report-options-row label.row-heading {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .report-checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 24px;
+    }
+    .report-checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      cursor: default;
+    }
+    .report-checkbox-group input[type="checkbox"] {
+      accent-color: #990000;
+      width: 15px;
+      height: 15px;
+      cursor: default;
+      pointer-events: none; /* display-only until backend is wired */
+    }
+    .report-options-note {
+      margin-top: 9px;
+      font-size: 12px;
+      color: #888;
+      font-style: italic;
+    }
+
+    /* ---------- leadership report options panel ---------- */
+    .leadership-opts {
+      margin-top: 10px;
+      padding: 12px 16px;
+      background: #f4f4f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+    }
+    .leadership-opts-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .leadership-opts-row:last-of-type { margin-bottom: 0; }
+    .leadership-opts-row label.field-lbl {
+      font-size: 12px;
+      color: #888;
+      white-space: nowrap;
+      min-width: 50px;
+    }
+    .year-type-group {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .year-type-group label {
+      font-size: 13px;
+      color: #444;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- ===================== SITE HEADER ===================== -->
+  <header class="site-header">
+    <h1>Schaeffer Metrics — Pipeline Control Panel</h1>
+    <p>USC Schaeffer Center for Health Policy &amp; Economics &nbsp;·&nbsp; Weekly Pipeline Operations</p>
+  </header>
+
+  <!-- ===================== SYSTEM MODE BANNER ===================== -->
+  <div class="mode-banner mode-production" id="mode-banner">
+    <div class="mode-banner-dot" id="mode-banner-dot"></div>
+    <div class="mode-banner-text" id="mode-banner-text">
+      <strong>PRODUCTION</strong> — <span>Pipeline is live. Use the steps below to trigger a run.</span>
+    </div>
+  </div>
+
+  <!-- DEV MODE WARNING BANNER removed — mode banner handles dev/production state -->
+
+  <!-- ===================== SECTION 1: PRE-FLIGHT ===================== -->
+  <section class="card" id="section-preflight">
+    <h2 class="card-heading">
+      <span class="step-num">1</span>
+      Verify Files Are Ready
+    </h2>
+    <p class="card-sub">
+      Box can take <strong>15–20 minutes</strong> to register new Quorum exports after they are placed in the folder.
+      Check that the expected files are available before triggering the pipeline.
+    </p>
+    <button class="btn btn-primary" id="btn-check" onclick="runPreflightCheck()">
+      Check File Status
+    </button>
+    <div class="result-box" id="preflight-result"></div>
+  </section>
+
+  <!-- ===================== SECTION 2: TRIGGER ===================== -->
+  <section class="card" id="section-trigger">
+    <h2 class="card-heading">
+      <span class="step-num">2</span>
+      Run the Pipeline
+    </h2>
+    <p class="card-sub">
+      Trigger the full Schaeffer Metrics pipeline. The button below is enabled only after a successful
+      pre-flight check confirms files are ready.
+    </p>
+
+    <button class="btn btn-gold" id="btn-run" disabled onclick="runPipeline()">
+      Run Pipeline
+    </button>
+
+    <div class="result-box" id="trigger-result"></div>
+
+    <div class="warn-note">
+      <strong>Do not trigger twice.</strong>
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 3: STATUS ===================== -->
+  <section class="card" id="section-status">
+    <h2 class="card-heading">Pipeline Status</h2>
+
+    <div class="status-grid">
+      <div class="status-item">
+        <label>Mode</label>
+        <div class="status-val" id="status-mode-val">
+          <span class="badge badge-green" id="status-mode-badge">PRODUCTION</span>
+        </div>
+      </div>
+      <div class="status-item">
+        <label>Last Run</label>
+        <div class="status-val" id="status-last-run">—</div>
+      </div>
+      <div class="status-item" style="grid-column: 1 / -1;">
+        <label>Email Recipients</label>
+        <div class="status-val" style="font-weight:400;font-size:13px;color:#666;" id="status-recipients">
+          Loading…
+        </div>
+      </div>
+
+      <!-- Report Options — weekly rows are display-only; Leadership Report is functional -->
+      <div class="report-options-row">
+        <label class="row-heading">Report Options</label>
+
+        <!-- Weekly reports (functional — flags sent via webhook; pipeline support in Phase 4 backlog) -->
+        <div class="report-checkbox-group" style="margin-bottom:12px;">
+          <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-deficiency" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Quorum Deficiency</label>
+          <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Update</label>
+        </div>
+
+        <!-- Leadership Report (functional) -->
+        <div>
+          <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; color:#333; cursor:pointer; user-select:none;">
+            <input type="checkbox" id="opt-leadership-report" style="width:15px; height:15px; accent-color:#990000;" onchange="onLeadershipReportToggle()">
+            Leadership Reports
+          </label>
+          <div id="leadership-options-panel" class="leadership-opts" style="display:none;">
+            <!-- Period selector -->
+            <div class="leadership-opts-row">
+              <label class="field-lbl" for="config-leadership-period">Period:</label>
+              <select class="config-select" id="config-leadership-period" style="max-width:170px;" onchange="onLeadershipPeriodChange()">
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="annual" selected>Annual</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <!-- Option picker — populated dynamically by onLeadershipPeriodChange() -->
+            <div id="leadership-option-picker" class="leadership-opts-row"></div>
+            <p style="margin:6px 0 0; font-size:12px; color:#888;">These settings are sent to the pipeline when you click <strong>Run Pipeline</strong> above.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ADMIN CONTROLS (COLLAPSIBLE) ===================== -->
+  <details id="section-admin-controls" class="admin-controls-details">
+    <summary class="admin-controls-summary">
+      <span>Admin Controls</span>
+      <span class="admin-controls-chevron">&#9660;</span>
+    </summary>
+
+    <div class="admin-controls-content">
+
+      <!-- Dev Mode Toggle -->
+      <section class="card" id="section-devmode">
+        <h2 class="card-heading">Dev Mode</h2>
+        <p class="card-sub">
+          When Dev Mode is ON, all pipeline emails route exclusively to the Administrator.
+          The pipeline runs normally — only email routing changes. The warning banner at the top will be visible
+          as a reminder. Turn Dev Mode OFF before triggering a production run.
+        </p>
+        <div class="toggle-row" style="align-items:center; gap:16px;">
+          <label class="toggle-switch-wrap" id="devmode-toggle-wrap" style="cursor:pointer;">
+            <input type="checkbox" id="devmode-checkbox" role="switch">
+            <span class="toggle-switch"></span>
+          </label>
+          <span class="toggle-label" id="devmode-label" style="font-size:15px; font-weight:600;">Checking&hellip;</span>
+          <button class="btn btn-gold" id="devmode-save-btn" onclick="toggleDevMode()" style="margin-left:8px;">
+            Apply
+          </button>
+        </div>
+        <div class="result-box" id="devmode-result"></div>
+      </section>
+
+      <!-- Configuration -->
+      <section class="card" id="section-config">
+        <h2 class="card-heading">
+          Configuration
+          <span class="badge badge-green" style="font-size:10px;">Live</span>
+        </h2>
+        <p class="card-sub">
+          Settings are loaded from and saved to the Config Manager workflow on n8n Cloud.
+          Changes take effect on the next pipeline run.
+        </p>
+
+        <div id="config-load-status">Loading configuration&hellip;</div>
+
+        <!-- Email Settings -->
+        <div class="config-group">
+          <div class="config-group-heading">Email Settings</div>
+
+          <div class="config-field">
+            <label for="config-test-email">Administrator Email (used when Dev Mode is ON)</label>
+            <input type="email" class="config-text-input" id="config-test-email" placeholder="administrator@usc.edu">
+          </div>
+
+          <div class="config-field">
+            <label for="config-recipients">Quorum Deficiency Report Recipients (one address per line)</label>
+            <textarea class="config-ta" id="config-recipients" rows="4" placeholder="recipient@usc.edu"></textarea>
+          </div>
+
+          <div class="config-field">
+            <label for="config-leadership-recipients">Leadership Report Recipients (one per line)</label>
+            <textarea class="config-ta" id="config-leadership-recipients" rows="3" placeholder="dean@usc.edu"></textarea>
+          </div>
+
+          <div class="config-field">
+            <label for="config-dashboard-recipients">Dashboard Report Recipients (one per line)</label>
+            <textarea class="config-ta" id="config-dashboard-recipients" rows="3" placeholder="dashboard@usc.edu"></textarea>
+          </div>
+
+          <div class="config-field">
+            <label for="config-completion-signal-recipient">Pipeline Completion Alert Recipient</label>
+            <input type="email" class="config-text-input" id="config-completion-signal-recipient" placeholder="administrator@usc.edu">
+          </div>
+        </div>
+
+        <!-- Thresholds -->
+        <div class="config-group">
+          <div class="config-group-heading">Thresholds</div>
+
+          <div class="config-field">
+            <label for="config-barry-items-threshold">Min Items for Administrator Alert</label>
+            <input type="number" class="config-number-input" id="config-barry-items-threshold" min="1">
+          </div>
+
+          <div class="config-field">
+            <label for="config-required-file-count">Required Quorum File Count (pre-flight)</label>
+            <input type="number" class="config-number-input" id="config-required-file-count" min="1">
+          </div>
+
+          <div class="config-field">
+            <label for="config-open-window-days">OPEN Interaction Window (days)</label>
+            <input type="number" class="config-number-input" id="config-open-window-days" min="0">
+          </div>
+        </div>
+
+        <div style="margin-top:6px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+          <button class="btn btn-primary" id="config-save-btn" onclick="saveConfig()">
+            Save Configuration
+          </button>
+          <div id="config-save-status" style="font-size:13px; color:#555;"></div>
+        </div>
+        <div class="result-box" id="config-result" style="margin-top:12px;"></div>
+      </section>
+
+
+    </div><!-- /.admin-controls-content -->
+  </details>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="page-footer">
+    This panel is for USC Schaeffer Center staff. Do not share externally.
+    &nbsp;·&nbsp; Schaeffer Metrics Pipeline via n8n Cloud
+  </footer>
+
+</div><!-- /.page-wrap -->
+
+<script>
+  /*
+   * CONTROL PANEL — INLINE JAVASCRIPT
+   *
+   * What this block does:
+   *   runPreflightCheck() — calls box-file-check webhook, parses response,
+   *     updates UI with file count and ready/not-ready status, and enables
+   *     the Run Pipeline button only on success.
+   *
+   *   runPipeline() — shows a confirmation dialog, then calls schaeffer-run
+   *     webhook and stamps a timestamp.
+   *
+   * Why this approach:
+   *   The page must work on file:// with zero server. fetch() is used for
+   *   webhook calls. CORS failures are caught and surfaced as friendly errors
+   *   rather than silent failures.
+   *
+   * Assumptions about webhook response shapes (verify with Barry):
+   *   box-file-check:
+   *     { fileCount: <number>, ready: <boolean> }   ← primary expected shape
+   *     Also handles: { file_count: <number> }, { count: <number> }
+   *     "ready" threshold: if `ready` field absent, assumes ready when fileCount >= 1
+   *
+   *   schaeffer-run:
+   *     Any 2xx response is treated as success; body is not parsed.
+   *
+   * Nodes/fields this affects:
+   *   btn-check, btn-run, preflight-result, trigger-result (DOM IDs)
+   */
+
+  /* ---- n8n Cloud base URL and API key ----
+   * This is a local admin tool (file:// protocol, staff-only use).
+   * The API key is stored here for convenience; it is also recorded in
+   * the project memory files outside of git.
+   */
+  const N8N_CLOUD_BASE   = 'https://uscschaeffercenterclips.app.n8n.cloud';
+  const N8N_API_KEY      = ''; /* removed before public hosting — pause/resume disabled */
+
+  /* ---- Workflow IDs ---- */
+  const WORKFLOW_ID_MAIN = 'rKeXXz6pU5teDwuT'; /* Main Pipeline */
+
+  /* ---- Webhook URLs ---- */
+  const WEBHOOK_PREFLIGHT  = N8N_CLOUD_BASE + '/webhook/box-file-check';
+  const WEBHOOK_TRIGGER    = N8N_CLOUD_BASE + '/webhook/schaeffer-run';
+  /* Config Manager — public webhooks, no API key required */
+  const WEBHOOK_CONFIG_GET = N8N_CLOUD_BASE + '/webhook/schaeffer-config';
+  const WEBHOOK_CONFIG_SET = N8N_CLOUD_BASE + '/webhook/schaeffer-config';
+
+  /* ---- Polling interval (ms) — adjust without hunting through code ---- */
+  const STATUS_POLL_INTERVAL_MS = 10000;
+
+  /* ---- State ---- */
+  let preflightPassed = false;
+  let statusPollTimer = null; /* holds setInterval handle so polling can be stopped */
+
+  /*
+   * FILE COUNT THRESHOLD
+   *
+   * What: Minimum number of Box files required before the pipeline is
+   *   considered "ready" when the webhook doesn't return an explicit
+   *   `ready: true` field.
+   *
+   * Why `let` (not `const`): loadConfig() updates this value from the
+   *   Config Manager GET endpoint after page load. The hardcoded 6 is
+   *   the fallback used only if the config load fails or the field is absent.
+   *
+   * Why 6: Committees.csv moved to the Systems Files subfolder and is no
+   *   longer part of the weekly Quorum upload set. The remaining 6 files
+   *   are the weekly Quorum exports this pipeline consumes.
+   *
+   * Affects: runPreflightCheck() fallback threshold logic below;
+   *   also reflects whatever REQUIRED_FILE_COUNT the Config Manager returns.
+   */
+  let REQUIRED_FILE_COUNT = 6;
+
+  /* ---- Helper: show a result box ---- */
+  function showResult(boxId, state, html) {
+    const el = document.getElementById(boxId);
+    el.className = 'result-box ' + state;
+    el.innerHTML = html;
+  }
+
+  /* ---- Helper: set button loading state ---- */
+  function setButtonLoading(btnId, loading, originalText) {
+    const btn = document.getElementById(btnId);
+    if (loading) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Checking…';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  /* ---- Helper: friendly timestamp ---- */
+  function nowStamp() {
+    return new Date().toLocaleString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+  }
+
+  /* ============================================================
+     STEP 1 — PRE-FLIGHT CHECK
+  ============================================================ */
+  async function runPreflightCheck() {
+    /* Reset state each time the button is pressed */
+    preflightPassed = false;
+    document.getElementById('btn-run').disabled = true;
+
+    const btn = document.getElementById('btn-check');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Checking…';
+
+    showResult('preflight-result', 'loading',
+      '<span class="spinner"></span> Checking Quorum file count in Box…');
+
+    try {
+      const resp = await fetch(WEBHOOK_PREFLIGHT, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!resp.ok) {
+        throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
+      }
+
+      /* Parse response — handle multiple possible field names */
+      let data = {};
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        data = await resp.json();
+      } else {
+        /* If n8n returns plain text, try to parse it anyway */
+        const text = await resp.text();
+        try { data = JSON.parse(text); } catch (_) { data = {}; }
+      }
+
+      /* Normalise field names: fileCount, file_count, count */
+      const fileCount =
+        typeof data.fileCount  === 'number' ? data.fileCount  :
+        typeof data.file_count === 'number' ? data.file_count :
+        typeof data.count      === 'number' ? data.count      :
+        null;
+
+      /* Determine ready status */
+      let ready;
+      if (typeof data.ready === 'boolean') {
+        ready = data.ready;
+      } else if (fileCount !== null) {
+        /* Fallback: use REQUIRED_FILE_COUNT constant (see declaration near top of script) */
+        ready = fileCount >= REQUIRED_FILE_COUNT;
+      } else {
+        ready = false;
+      }
+
+      if (ready) {
+        const countPhrase = fileCount !== null
+          ? fileCount + ' file' + (fileCount !== 1 ? 's' : '') + ' found'
+          : 'files confirmed';
+
+        showResult('preflight-result', 'success',
+          '&#10003; <strong>Ready</strong> — ' + countPhrase + '. You may proceed to Step 2.');
+
+        preflightPassed = true;
+        const runBtn = document.getElementById('btn-run');
+        runBtn.disabled = false;
+        runBtn.innerHTML = 'Run Pipeline'; /* reset label if a previous trigger locked it */
+
+      } else {
+        const countPhrase = fileCount !== null
+          ? 'Only ' + fileCount + ' file' + (fileCount !== 1 ? 's' : '') + ' found'
+          : 'Files not confirmed';
+
+        showResult('preflight-result', 'warn',
+          '&#9888; <strong>Not ready</strong> — ' + countPhrase +
+          '. Box may still be registering the export. Please wait a few minutes and check again.');
+      }
+
+    } catch (err) {
+      /* Distinguish CORS / network failures from server errors */
+      const isCors = (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
+      const msg = isCors
+        ? 'Could not reach n8n Cloud. Make sure you have internet access, then try again. (CORS or network error)'
+        : 'Error: ' + err.message;
+
+      showResult('preflight-result', 'error', '&#10007; ' + msg);
+    }
+
+    /* Restore button */
+    btn.disabled = false;
+    btn.innerHTML = 'Check File Status';
+  }
+
+  /* ============================================================
+     STEP 2 — PIPELINE TRIGGER
+  ============================================================ */
+
+  /*
+   * buildRunParams — reads current report option UI state and returns a
+   * URLSearchParams query string to append to the webhook trigger URL.
+   *
+   * Why query params instead of Box config: report flags are per-run intent
+   * (which reports to generate on this specific execution). Storing them in Box
+   * requires a separate save + Box API round-trip before triggering, and risks a
+   * race condition where Box hasn't indexed the updated file yet. Passing them
+   * directly on the webhook URL is atomic — the pipeline sees exactly what the
+   * user chose at trigger time.
+   *
+   * Read Config merges these webhook params on top of Box config so all downstream
+   * nodes still use $('Read Config').first().json as the single source of truth.
+   */
+  function buildRunParams() {
+    const params = new URLSearchParams();
+
+    /* Leadership Report */
+    const sendLR = !!(document.getElementById('opt-leadership-report') || {}).checked;
+    params.set('SEND_LEADERSHIP_REPORT', sendLR ? 'true' : 'false');
+    if (sendLR) {
+      const mode = getLeadershipPeriod();
+      params.set('REPORT_MODE', mode);
+      const refDate = getLeadershipReferenceDate();
+      if (refDate) params.set('REPORT_REFERENCE_DATE', refDate);
+      params.set('REPORT_YEAR_TYPE', getLeadershipYearType());
+      if (mode === 'custom') {
+        const cs = getLeadershipCustomDate('start');
+        const ce = getLeadershipCustomDate('end');
+        if (cs) params.set('REPORT_CUSTOM_START', cs);
+        if (ce) params.set('REPORT_CUSTOM_END', ce);
+      }
+    }
+
+    /* Weekly reports (pipeline support in Phase 4 backlog — flags stored for future use) */
+    const sendWD = !!(document.getElementById('opt-weekly-deficiency') || {}).checked;
+    const sendWU = !!(document.getElementById('opt-weekly-update') || {}).checked;
+    if (sendWD) params.set('SEND_WEEKLY_DEFICIENCY', 'true');
+    if (sendWU) params.set('SEND_WEEKLY_UPDATE', 'true');
+
+    return params.toString();
+  }
+
+  async function runPipeline() {
+    if (!preflightPassed) {
+      alert('Please complete the pre-flight check first (Step 1).');
+      return;
+    }
+
+    /* Build human-readable summary of what will run for the confirmation dialog */
+    const sendLR = !!(document.getElementById('opt-leadership-report') || {}).checked;
+    const sendWD = !!(document.getElementById('opt-weekly-deficiency') || {}).checked;
+    const sendWU = !!(document.getElementById('opt-weekly-update') || {}).checked;
+    const reportLines = [];
+    if (sendLR) reportLines.push('  • Leadership Report (' + getLeadershipPeriod() + ')');
+    if (sendWD) reportLines.push('  • Weekly Quorum Deficiency');
+    if (sendWU) reportLines.push('  • Weekly Update');
+    const reportsNote = reportLines.length
+      ? '\n\nReports that will run:\n' + reportLines.join('\n')
+      : '\n\nNo optional reports selected.';
+
+    /* Confirmation gate */
+    const confirmed = confirm(
+      'Are you sure you want to trigger the Schaeffer pipeline?\n\n' +
+      'The pipeline will process this week\'s Quorum files and send ' +
+      'the metrics report. Do not trigger twice.' + reportsNote
+    );
+    if (!confirmed) return;
+
+    const btn = document.getElementById('btn-run');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Triggering…';
+
+    showResult('trigger-result', 'loading',
+      '<span class="spinner"></span> Sending trigger to n8n Cloud…');
+
+    try {
+      const qs  = buildRunParams();
+      const url = WEBHOOK_TRIGGER + (qs ? '?' + qs : '');
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      /* Any 2xx is success — pipeline is async, no meaningful body expected */
+      if (!resp.ok) {
+        throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
+      }
+
+      const triggerTime = new Date();
+      const stamp = nowStamp();
+      showResult('trigger-result', 'success',
+        'Triggered at: ' + stamp +
+        ' &nbsp;<span class="spinner" id="completion-spinner" style="opacity:0.5;"></span>');
+
+      /* Poll config webhook for real completion — see startCompletionPolling() */
+      startCompletionPolling(triggerTime, stamp);
+
+      /* Lock the button to prevent double-trigger this session */
+      btn.innerHTML = 'Pipeline Triggered';
+      btn.disabled = true;
+      preflightPassed = false; /* require fresh pre-flight for any re-run */
+
+    } catch (err) {
+      const isCors = (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
+      const msg = isCors
+        ? 'Could not reach n8n Cloud. Make sure you have internet access, then try again. (CORS or network error)'
+        : 'Error: ' + err.message;
+
+      showResult('trigger-result', 'error', '&#10007; ' + msg);
+
+      /* Re-enable on failure so staff can retry */
+      btn.disabled = false;
+      btn.innerHTML = 'Run Pipeline';
+    }
+  }
+
+  /*
+   * startCompletionPolling — polls GET /webhook/schaeffer-config every 20 seconds
+   * after a pipeline trigger. When cfg.LAST_RUN (an ISO timestamp written by the
+   * "Record Last Run" node at the end of the pipeline) is newer than triggerTime,
+   * the pipeline has genuinely completed. Updates the trigger result box and the
+   * status grid Last Run cell with the real completion time in ET.
+   *
+   * Why the config webhook and not the executions REST API: the REST API requires
+   * X-N8N-API-KEY which triggers a CORS preflight that n8n Cloud rejects from
+   * localhost. The config webhook is a public n8n webhook that echoes the origin
+   * header and works fine from localhost:8765.
+   *
+   * Max wait: 45 polls × 20 s = 15 minutes. Timeout message if not complete by then.
+   */
+  function startCompletionPolling(triggerTime, stamp) {
+    let polls = 0;
+    const MAX_POLLS = 45;
+    const INTERVAL_MS = 20000;
+
+    const timer = setInterval(async function() {
+      polls++;
+
+      try {
+        const resp = await fetch(WEBHOOK_CONFIG_GET, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok) return; /* transient error — keep trying */
+
+        const ct = resp.headers.get('content-type') || '';
+        let cfg = {};
+        if (ct.includes('application/json')) {
+          cfg = await resp.json();
+        } else {
+          const text = await resp.text();
+          try { cfg = JSON.parse(text); } catch (_) {}
+        }
+
+        const lastRunISO = cfg.LAST_RUN;
+        if (lastRunISO) {
+          const lastRunDate = new Date(lastRunISO);
+          if (!isNaN(lastRunDate.getTime()) && lastRunDate > triggerTime) {
+            /* Pipeline genuinely complete — LAST_RUN was written after this trigger */
+            clearInterval(timer);
+
+            const completedAt = lastRunDate.toLocaleString('en-US', {
+              timeZone: 'America/New_York',
+              month: 'short', day: 'numeric', year: 'numeric',
+              hour: 'numeric', minute: '2-digit', hour12: true
+            }) + ' ET';
+
+            showResult('trigger-result', 'success',
+              'Triggered at: ' + stamp +
+              '<br><span style="font-size:12px;">&#10003; Complete at ' + completedAt + '</span>');
+
+            /* Refresh Last Run in the status grid immediately */
+            const lastRunEl = document.getElementById('status-last-run');
+            if (lastRunEl) lastRunEl.textContent = completedAt;
+            return;
+          }
+        }
+      } catch (_) { /* network error — keep polling */ }
+
+      if (polls >= MAX_POLLS) {
+        clearInterval(timer);
+        const box = document.getElementById('trigger-result');
+        if (box && box.classList.contains('success')) {
+          box.innerHTML = 'Triggered at: ' + stamp +
+            '<br><span style="font-size:12px; color:#856404;">&#9888; No completion signal after 15 min.' +
+            ' Check your email or the n8n execution log.</span>';
+        }
+      }
+    }, INTERVAL_MS);
+  }
+
+
+  /* ============================================================
+     SECTION 4 — CONFIG MANAGER  (live — Phase 4+)
+  ============================================================ */
+
+  /*
+   * What: loadConfig() calls GET /webhook/schaeffer-config and populates
+   *   every config field in section-config with the returned values.
+   *   Semicolon-separated strings (RECIPIENTS etc.) are split onto separate
+   *   lines for editing.  Also updates REQUIRED_FILE_COUNT so the pre-flight
+   *   check uses the live threshold, not the hardcoded fallback.
+   *
+   * Why no API key: Config Manager webhooks are public endpoints on n8n Cloud.
+   *   They do not require the X-N8N-API-KEY header.
+   *
+   * Why called on DOMContentLoaded: the config section is always visible;
+   *   eagerly loading means the staff member sees current values right away.
+   *
+   * Depends on: WEBHOOK_CONFIG_GET constant; all DOM IDs in section-config;
+   *   REQUIRED_FILE_COUNT (let, declared near top of script).
+   * Affects: all config-* input / textarea / select / checkbox elements;
+   *   #config-load-status; REQUIRED_FILE_COUNT module-level variable.
+   */
+  async function loadConfig() {
+    const statusEl = document.getElementById('config-load-status');
+    statusEl.textContent = 'Loading configuration…';
+    statusEl.className = '';
+
+    try {
+      const resp = await fetch(WEBHOOK_CONFIG_GET, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!resp.ok) {
+        throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
+      }
+
+      let cfg = {};
+      const ct = resp.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        cfg = await resp.json();
+      } else {
+        const text = await resp.text();
+        try { cfg = JSON.parse(text); } catch (_) { cfg = {}; }
+      }
+
+      /* --- Populate fields --- */
+
+      /* Text inputs */
+      setVal('config-test-email',                    cfg.TEST_EMAIL                  || '');
+      setVal('config-completion-signal-recipient',   cfg.COMPLETION_SIGNAL_RECIPIENT || '');
+
+      /* Textareas — semicolon-separated → one per line */
+      setVal('config-recipients',           semiToLines(cfg.RECIPIENTS));
+      setVal('config-leadership-recipients', semiToLines(cfg.LEADERSHIP_RECIPIENTS));
+      setVal('config-dashboard-recipients',  semiToLines(cfg.DASHBOARD_RECIPIENTS));
+
+      /* Note: REPORT_START_DATE / REPORT_END_DATE are legacy keys — replaced by
+         REPORT_REFERENCE_DATE (for auto-computed periods) and REPORT_CUSTOM_START /
+         REPORT_CUSTOM_END (for custom mode). Restored below with the leadership controls. */
+
+      /* Leadership Report controls — restore checkbox, period selector, and option picker */
+      var sendLR = cfg.SEND_LEADERSHIP_REPORT === true || cfg.SEND_LEADERSHIP_REPORT === 'true';
+      var lrCb = document.getElementById('opt-leadership-report');
+      if (lrCb) lrCb.checked = sendLR;
+      var lrPanel = document.getElementById('leadership-options-panel');
+      if (lrPanel) lrPanel.style.display = sendLR ? 'block' : 'none';
+      var lrPeriodSel = document.getElementById('config-leadership-period');
+      if (lrPeriodSel && cfg.REPORT_MODE) lrPeriodSel.value = cfg.REPORT_MODE;
+      if (sendLR && cfg.REPORT_MODE) {
+        var lrPicker = document.getElementById('leadership-option-picker');
+        if (lrPicker) {
+          var refDate  = cfg.REPORT_REFERENCE_DATE || null;
+          var yearType = cfg.REPORT_YEAR_TYPE       || 'fiscal';
+          lrPicker.innerHTML = renderLeadershipOptionPickerHTML(cfg.REPORT_MODE, refDate, yearType);
+          if (cfg.REPORT_MODE === 'annual') {
+            lrPicker.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) {
+              r.addEventListener('change', refreshAnnualYearOptions);
+            });
+          }
+          if (cfg.REPORT_MODE === 'custom' && cfg.REPORT_CUSTOM_END) {
+            setVal('config-lr-end', cfg.REPORT_CUSTOM_END);
+          }
+        }
+      }
+
+      /* Number inputs */
+      setVal('config-barry-items-threshold',  cfg.BARRY_ITEMS_THRESHOLD  != null ? String(cfg.BARRY_ITEMS_THRESHOLD)  : '');
+      setVal('config-required-file-count',    cfg.REQUIRED_FILE_COUNT    != null ? String(cfg.REQUIRED_FILE_COUNT)    : '');
+      setVal('config-open-window-days',       cfg.OPEN_WINDOW_DAYS       != null ? String(cfg.OPEN_WINDOW_DAYS)       : '');
+
+      /* Dynamically update the pre-flight threshold so it uses the live value */
+      if (cfg.REQUIRED_FILE_COUNT != null) {
+        const parsed = parseInt(cfg.REQUIRED_FILE_COUNT, 10);
+        if (!isNaN(parsed) && parsed > 0) REQUIRED_FILE_COUNT = parsed;
+      }
+
+      /* Update status grid recipients summary */
+      const recipientsEl = document.getElementById('status-recipients');
+      if (recipientsEl) {
+        const isTest = cfg.TEST_MODE === true || cfg.TEST_MODE === 'true';
+        if (isTest) {
+          const adminEmail = cfg.TEST_EMAIL || 'Administrator';
+          recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
+        } else {
+          const lr = semiToLines(cfg.LEADERSHIP_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
+          const dr = semiToLines(cfg.DASHBOARD_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
+          recipientsEl.innerHTML = 'Leadership: <strong>' + lr + '</strong><br>Dashboard: <strong>' + dr + '</strong>';
+        }
+      }
+
+      /* Update Last Run — LAST_RUN is ISO UTC (set by pipeline); LAST_UPDATED is date-only fallback */
+      const lastRunEl = document.getElementById('status-last-run');
+      const lastRunVal = cfg.LAST_RUN || cfg.LAST_UPDATED;
+      if (lastRunEl && lastRunVal) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(lastRunVal)) {
+          /* Date-only string (LAST_UPDATED) — build in local time to avoid UTC-offset day shift */
+          const [yr, mo, dy] = lastRunVal.split('-').map(Number);
+          lastRunEl.textContent = new Date(yr, mo - 1, dy)
+            .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        } else {
+          const d = new Date(lastRunVal);
+          if (isNaN(d.getTime())) {
+            lastRunEl.textContent = lastRunVal;
+          } else {
+            /* ISO timestamp (LAST_RUN) — display in ET */
+            lastRunEl.textContent = d.toLocaleString('en-US', {
+              timeZone: 'America/New_York',
+              month:'short', day:'numeric', year:'numeric',
+              hour:'numeric', minute:'2-digit', hour12:true
+            }) + ' ET';
+          }
+        }
+      }
+
+      statusEl.textContent = 'Configuration loaded — last fetched at ' + nowStamp();
+      statusEl.className = 'ok';
+
+    } catch (err) {
+      statusEl.textContent = 'Could not load configuration: ' + err.message;
+      statusEl.className = 'err';
+    }
+  }
+
+  /*
+   * What: saveConfig() reads every config field, builds a JSON object,
+   *   and POSTs it to /webhook/schaeffer-config.
+   *   Textarea values (one address per line) are joined back into
+   *   semicolon-separated strings before sending.
+   *
+   * Why POST with JSON body: the Config Manager webhook expects a JSON
+   *   object with any subset of setting keys. Sending only what the UI
+   *   knows about avoids accidentally blanking unknown keys stored in Box.
+   *
+   * Affects: #config-save-btn (disabled during request);
+   *   #config-result (shows success / error feedback);
+   *   REQUIRED_FILE_COUNT (updated if user changed the field and saved).
+   */
+  async function saveConfig() {
+    const saveBtn = document.getElementById('config-save-btn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
+    showResult('config-result', 'loading', '<span class="spinner"></span> Saving configuration…');
+
+    try {
+      /* Build payload from current field values */
+      /* Persistent settings only — report flags (SEND_LEADERSHIP_REPORT, REPORT_MODE,
+         REPORT_REFERENCE_DATE, etc.) are NOT saved here. They are per-run intent and
+         are sent directly via webhook query params when Run Pipeline is triggered. */
+      const payload = {
+        TEST_EMAIL:                   getVal('config-test-email'),
+        RECIPIENTS:                   linesToSemi('config-recipients'),
+        LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
+        DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
+        COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
+        BARRY_ITEMS_THRESHOLD:        toNumOrNull('config-barry-items-threshold'),
+        REQUIRED_FILE_COUNT:          toNumOrNull('config-required-file-count'),
+        OPEN_WINDOW_DAYS:             toNumOrNull('config-open-window-days')
+      };
+
+      const resp = await fetch(WEBHOOK_CONFIG_SET, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!resp.ok) {
+        throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
+      }
+
+      /* Update the live pre-flight threshold in case the user changed it */
+      if (payload.REQUIRED_FILE_COUNT != null) REQUIRED_FILE_COUNT = payload.REQUIRED_FILE_COUNT;
+
+      showResult('config-result', 'success',
+        '✓ <strong>Configuration saved.</strong> Changes will take effect on the next pipeline run.');
+
+    } catch (err) {
+      const isCors = (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
+      const msg = isCors
+        ? 'Could not reach n8n Cloud. Check internet access. (CORS or network error)'
+        : 'Error: ' + err.message;
+      showResult('config-result', 'error', '✗ ' + msg);
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = 'Save Configuration';
+  }
+
+  /* ---- Config helper: set a plain input/textarea/select value ---- */
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val != null ? val : '';
+  }
+
+  /* ---- Config helper: read a plain input/textarea/select value ---- */
+  function getVal(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  /*
+   * Config helper: set a toggle checkbox and sync its visible label.
+   * The label element shows "ON" / "OFF" so the state is obvious without
+   * relying on color alone (accessibility).
+   */
+  function setToggle(checkboxId, labelId, boolVal) {
+    const cb = document.getElementById(checkboxId);
+    if (cb) cb.checked = !!boolVal;
+    const lbl = document.getElementById(labelId);
+    if (lbl) lbl.textContent = boolVal ? 'ON' : 'OFF';
+  }
+
+  /* ---- Config helper: parse textarea lines into semicolon-separated string ---- */
+  function linesToSemi(id) {
+    const el = document.getElementById(id);
+    if (!el) return '';
+    return el.value.split('\n')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .join(';');
+  }
+
+  /* ---- Config helper: split semicolon-separated string into textarea lines ---- */
+  function semiToLines(val) {
+    if (!val) return '';
+    return val.split(';').map(s => s.trim()).filter(Boolean).join('\n');
+  }
+
+  /* ---- Config helper: read a number input, returning null if empty/NaN ---- */
+  function toNumOrNull(id) {
+    const el = document.getElementById(id);
+    if (!el || el.value.trim() === '') return null;
+    const n = parseFloat(el.value);
+    return isNaN(n) ? null : n;
+  }
+
+  /* ---- Wire toggle labels to update live as the user clicks ---- */
+  function bindToggleLabel(checkboxId, labelId) {
+    const cb = document.getElementById(checkboxId);
+    const lbl = document.getElementById(labelId);
+    if (!cb || !lbl) return;
+    cb.addEventListener('change', function() {
+      lbl.textContent = cb.checked ? 'ON' : 'OFF';
+    });
+  }
+
+  /* ============================================================
+     SYSTEM MODE BANNER  (Phase 5)
+  ============================================================ */
+
+  /*
+   * What: loadPipelineMode() calls GET /api/v1/workflows/{WORKFLOW_ID_MAIN}
+   *   to check whether the Main Pipeline is active or deactivated.
+   *   Updates the mode banner at the top of the page with one of three states:
+   *     PRODUCTION  — workflow.active === true
+   *     PAUSED      — workflow.active === false
+   *     DEV MODE    — not yet implemented via API; reserved for future config flag
+   *
+   * Why the workflow active flag: deactivating the workflow in n8n Cloud is the
+   *   standard way to pause it. An inactive workflow ignores webhook triggers
+   *   and schedule triggers (though we have no schedule — see ROADMAP.md).
+   *
+   * Why called on page load: gives Jennifer immediate visual context about
+   *   pipeline state before she touches any button.
+   *
+   * Depends on: N8N_CLOUD_BASE, N8N_API_KEY, WORKFLOW_ID_MAIN constants;
+   *   #mode-banner, #mode-banner-dot, #mode-banner-text DOM elements.
+   */
+  function loadPipelineMode() {
+    /* Cloud pipeline is always active — show PRODUCTION by default.
+     * The REST API endpoint that checks active status requires CORS headers
+     * not available from a local server; mode is overridden by loadDevModeState()
+     * when TEST_MODE is ON. */
+    setBanner('mode-production',
+      '<strong>PRODUCTION</strong> — <span>Pipeline is live. Use the steps below to trigger a run.</span>');
+  }
+
+  /* ---- Helper: swap mode class and update banner text ---- */
+  function setBanner(modeClass, html) {
+    const banner = document.getElementById('mode-banner');
+    const textEl = document.getElementById('mode-banner-text');
+    if (!banner || !textEl) return;
+    banner.className = 'mode-banner ' + modeClass;
+    textEl.innerHTML = html;
+  }
+
+
+  /* ============================================================
+     DEV MODE CARD  (Phase 12)
+  ============================================================ */
+
+  /*
+   * What: loadDevModeState() calls GET /webhook/schaeffer-config (same endpoint
+   *   as loadConfig()) to read the current TEST_MODE value. Updates the devmode
+   *   checkbox, label, and #dev-mode-banner visibility. Also swaps the system mode
+   *   banner to mode-dev when dev mode is active, or restores it via loadPipelineMode()
+   *   when dev mode is off.
+   *
+   * Why the same config webhook: TEST_MODE is one of the 18 settings in
+   *   pipeline-config.csv. No separate endpoint is needed; the config GET returns all
+   *   18 settings including TEST_MODE. (D-03: existing TEST_MODE key, no new schema.)
+   *
+   * Depends on: WEBHOOK_CONFIG_GET constant; setBanner(), loadPipelineMode(), showResult();
+   *   #devmode-checkbox, #devmode-label, #dev-mode-banner DOM IDs.
+   */
+  async function loadDevModeState() {
+    try {
+      const resp = await fetch(WEBHOOK_CONFIG_GET, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!resp.ok) {
+        document.getElementById('devmode-label').textContent = 'Unknown — check connection';
+        return;
+      }
+
+      let cfg = {};
+      const ct = resp.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        cfg = await resp.json();
+      } else {
+        const text = await resp.text();
+        try { cfg = JSON.parse(text); } catch (_) { cfg = {}; }
+      }
+
+      /* Normalize: TEST_MODE may arrive as boolean or string 'true'/'false' */
+      const isDevMode = cfg.TEST_MODE === true || cfg.TEST_MODE === 'true';
+
+      /* Update the toggle checkbox */
+      const cb = document.getElementById('devmode-checkbox');
+      if (cb) cb.checked = isDevMode;
+
+      /* Update the visible label */
+      const lbl = document.getElementById('devmode-label');
+      if (lbl) lbl.textContent = isDevMode ? 'DEV MODE: ON' : 'DEV MODE: OFF';
+
+      /* Show or hide the full-width warning banner (D-02) */
+      const banner = document.getElementById('dev-mode-banner');
+      if (banner) banner.style.display = isDevMode ? 'block' : 'none';
+
+      /* Swap mode banner and status grid badge */
+      const modeBadge = document.getElementById('status-mode-badge');
+      if (isDevMode) {
+        setBanner('mode-dev',
+          '<strong>DEV MODE</strong> — <span>Emails go to Administrator only. Pipeline trigger is still active.</span>');
+        if (modeBadge) { modeBadge.textContent = 'DEV MODE'; modeBadge.className = 'badge badge-yellow'; }
+      } else {
+        loadPipelineMode();
+        if (modeBadge) { modeBadge.textContent = 'PRODUCTION'; modeBadge.className = 'badge badge-green'; }
+      }
+
+      /* Refresh Email Recipients summary — same cfg already fetched, no extra network call */
+      const recipientsEl = document.getElementById('status-recipients');
+      if (recipientsEl) {
+        if (isDevMode) {
+          const adminEmail = cfg.TEST_EMAIL || 'Administrator';
+          recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
+        } else {
+          const lr = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+          const dr = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+          recipientsEl.innerHTML = 'Leadership: <strong>' + lr + '</strong><br>Dashboard: <strong>' + dr + '</strong>';
+        }
+      }
+
+    } catch (err) {
+      const lbl = document.getElementById('devmode-label');
+      if (lbl) lbl.textContent = 'Unknown — check connection';
+    }
+  }
+
+  /*
+   * What: toggleDevMode() reads the current devmode-checkbox state and POSTs
+   *   { TEST_MODE: <newValue> } to WEBHOOK_CONFIG_SET. On success, refreshes
+   *   the displayed state by calling loadDevModeState().
+   *
+   * Why only TEST_MODE in the payload: the Config Manager webhook merges incoming
+   *   keys into the existing CSV — sending only TEST_MODE updates that one key
+   *   without blanking the other 17 settings. (Same pattern as saveConfig().)
+   *
+   * Depends on: WEBHOOK_CONFIG_SET constant; loadDevModeState(), showResult();
+   *   #devmode-checkbox, #devmode-save-btn, #devmode-result DOM IDs.
+   */
+  async function toggleDevMode() {
+    const cb = document.getElementById('devmode-checkbox');
+    const saveBtn = document.getElementById('devmode-save-btn');
+    if (!cb) return;
+
+    const newVal = cb.checked;
+    showResult('devmode-result', 'loading', '<span class="spinner"></span> Updating dev mode…');
+    saveBtn.disabled = true;
+
+    /* 15-second timeout — config webhook can be slow when writing to Box */
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const resp = await fetch(WEBHOOK_CONFIG_SET, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ TEST_MODE: newVal }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) {
+        throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
+      }
+
+      /* Refresh UI from live config before showing success so it reflects actual state */
+      await loadDevModeState();
+      showResult('devmode-result', 'success',
+        '&#10003; Dev mode ' + (newVal ? 'enabled.' : 'disabled.'));
+
+    } catch (err) {
+      clearTimeout(timeoutId);
+      const isTimeout = err.name === 'AbortError';
+      const isCors = !isTimeout && (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
+      const msg = isTimeout
+        ? 'Request timed out — the config may have been saved. Reload the page to check.'
+        : isCors
+          ? 'Could not reach n8n Cloud. Check internet access. (CORS or network error)'
+          : 'Error: ' + err.message;
+      showResult('devmode-result', 'error', '&#10007; ' + msg);
+    } finally {
+      saveBtn.disabled = false;
+    }
+  }
+
+  /* ============================================================
+     LEADERSHIP REPORT OPTIONS  (Phase 5 reports section)
+  ============================================================ */
+
+  /*
+   * What: Show/hide the Period + Option panel when the Leadership Reports
+   *   checkbox is toggled. Initializes the option picker on first show.
+   * Why: Leadership Reports are on-demand (quarterly or less often); the
+   *   checkbox tells the pipeline whether to generate the report on the next trigger.
+   */
+  function onLeadershipReportToggle() {
+    var cb    = document.getElementById('opt-leadership-report');
+    var panel = document.getElementById('leadership-options-panel');
+    if (!panel) return;
+    var showing = cb && cb.checked;
+    panel.style.display = showing ? 'block' : 'none';
+    if (showing) { onLeadershipPeriodChange(); }
+  }
+
+  /*
+   * What: Re-renders #leadership-option-picker when the Period dropdown changes.
+   * Why: Each period needs different controls — week picker, month picker,
+   *   quarter picker, fiscal/calendar year selector, or start/end date fields.
+   * Reads:  #config-leadership-period
+   * Writes: #leadership-option-picker innerHTML + wires annual radio listeners
+   */
+  function onLeadershipPeriodChange() {
+    var sel    = document.getElementById('config-leadership-period');
+    var mode   = sel ? sel.value : 'annual';
+    var picker = document.getElementById('leadership-option-picker');
+    if (!picker) return;
+    picker.innerHTML = renderLeadershipOptionPickerHTML(mode, null, 'fiscal');
+    if (mode === 'annual') {
+      picker.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) {
+        r.addEventListener('change', refreshAnnualYearOptions);
+      });
+    }
+  }
+
+  /*
+   * What: Builds inner HTML for the option-picker row for a given period mode.
+   *   referenceDate — ISO date from saved config; pre-selects the right option.
+   *   yearType — 'fiscal' | 'calendar'; used for annual mode only.
+   */
+  function renderLeadershipOptionPickerHTML(mode, referenceDate, yearType) {
+    if (mode === 'custom') {
+      return '<label class="field-lbl">Start:</label>' +
+        '<input type="date" class="config-date-input" id="config-lr-start"' +
+        ' style="max-width:175px;" value="' + (referenceDate || '') + '">' +
+        '<label class="field-lbl" style="margin-left:6px;">End:</label>' +
+        '<input type="date" class="config-date-input" id="config-lr-end" style="max-width:175px;">';
+    }
+    if (mode === 'annual') {
+      var fiscal   = (yearType !== 'calendar');
+      var yearOpts = buildAnnualOptions(fiscal, referenceDate);
+      return '<label class="field-lbl" for="config-lr-year">Year:</label>' +
+        '<select class="config-select" id="config-lr-year" style="max-width:180px;">' +
+        yearOpts.map(function(o) {
+          return '<option value="' + o.value + '"' + (o.selected ? ' selected' : '') + '>' + o.label + '</option>';
+        }).join('') + '</select>' +
+        '<div class="year-type-group">' +
+          '<label><input type="radio" name="lr-year-type" value="fiscal"'  + (fiscal  ? ' checked' : '') + '> Fiscal</label>' +
+          '<label><input type="radio" name="lr-year-type" value="calendar"' + (!fiscal ? ' checked' : '') + '> Calendar</label>' +
+        '</div>';
+    }
+    var label, opts;
+    if      (mode === 'weekly')    { label = 'Week:';    opts = buildWeekOptions(referenceDate);    }
+    else if (mode === 'monthly')   { label = 'Month:';   opts = buildMonthOptions(referenceDate);   }
+    else /* quarterly */           { label = 'Quarter:'; opts = buildQuarterOptions(referenceDate); }
+    return '<label class="field-lbl" for="config-lr-option">' + label + '</label>' +
+      '<select class="config-select" id="config-lr-option" style="max-width:235px;">' +
+      opts.map(function(o) {
+        return '<option value="' + o.value + '"' + (o.selected ? ' selected' : '') + '>' + o.label + '</option>';
+      }).join('') + '</select>';
+  }
+
+  /* Rebuilds the year dropdown when fiscal ↔ calendar radio changes. */
+  function refreshAnnualYearOptions() {
+    var yearType = 'fiscal';
+    document.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) { if (r.checked) yearType = r.value; });
+    var yearSel = document.getElementById('config-lr-year');
+    var curVal  = yearSel ? yearSel.value : null;
+    var opts    = buildAnnualOptions(yearType === 'fiscal', null);
+    if (yearSel) {
+      yearSel.innerHTML = opts.map(function(o) {
+        return '<option value="' + o.value + '"' + (o.value === curVal ? ' selected' : '') + '>' + o.label + '</option>';
+      }).join('');
+    }
+  }
+
+  /* ---- Helpers for saveConfig to read leadership fields ---- */
+
+  function getLeadershipPeriod() {
+    var sel = document.getElementById('config-leadership-period');
+    return sel ? sel.value : '';
+  }
+
+  function getLeadershipReferenceDate() {
+    var mode = getLeadershipPeriod();
+    if (mode === 'custom') return '';
+    if (mode === 'annual') {
+      var s = document.getElementById('config-lr-year');
+      return s ? s.value : '';
+    }
+    var s = document.getElementById('config-lr-option');
+    return s ? s.value : '';
+  }
+
+  function getLeadershipYearType() {
+    var val = 'fiscal';
+    document.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) { if (r.checked) val = r.value; });
+    return val;
+  }
+
+  function getLeadershipCustomDate(which) {
+    if (getLeadershipPeriod() !== 'custom') return '';
+    var el = document.getElementById(which === 'start' ? 'config-lr-start' : 'config-lr-end');
+    return el ? el.value : '';
+  }
+
+  /* ---- Option list builders ---- */
+
+  /* Last 12 completed Mon–Sun weeks. Value = ISO date of that Monday. */
+  function buildWeekOptions(selectedVal) {
+    var opts = [], now = new Date();
+    now.setHours(0, 0, 0, 0);
+    var day = now.getDay(); /* 0=Sun */
+    var daysSinceMon = (day === 0) ? 6 : day - 1;
+    /* Step back one full week past the current partial week */
+    var lastMon = new Date(now.getTime() - (daysSinceMon + 7) * 86400000);
+    for (var i = 0; i < 12; i++) {
+      var mon = new Date(lastMon.getTime() - i * 7 * 86400000);
+      var sun = new Date(mon.getTime() + 6 * 86400000);
+      var val = isoDate(mon);
+      opts.push({ value: val, selected: selectedVal === val,
+        label: 'Week of ' + fmtMD(mon) + ' – ' + fmtMDY(sun) });
+    }
+    return opts;
+  }
+
+  /* Last 18 completed calendar months. Value = ISO date of 1st of that month. */
+  function buildMonthOptions(selectedVal) {
+    var opts = [], now = new Date(), y = now.getFullYear(), m = now.getMonth();
+    for (var i = 1; i <= 18; i++) {
+      var cm = m - i, cy = y;
+      while (cm < 0) { cm += 12; cy--; }
+      var d = new Date(cy, cm, 1);
+      var val = isoDate(d);
+      opts.push({ value: val, selected: selectedVal === val,
+        label: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }) });
+    }
+    return opts;
+  }
+
+  /* Last 8 completed fiscal quarters (Q1=Jul-Sep, Q2=Oct-Dec, Q3=Jan-Mar, Q4=Apr-Jun).
+     Value = ISO date of the first day of that quarter. */
+  function buildQuarterOptions(selectedVal) {
+    var opts = [], now = new Date(), y = now.getFullYear(), m = now.getMonth();
+    var fyBase, fqBase;
+    if (m >= 6) { fyBase = y;     fqBase = Math.floor((m - 6) / 3); }
+    else         { fyBase = y - 1; fqBase = 2 + Math.floor(m / 3);  }
+    for (var i = 1; i <= 8; i++) {
+      var q0 = fqBase - i, fy = fyBase;
+      while (q0 < 0) { q0 += 4; fy--; }
+      var qNum = q0 + 1, qMo, qYr;
+      if      (qNum === 1) { qMo = 6; qYr = fy;     }
+      else if (qNum === 2) { qMo = 9; qYr = fy;     }
+      else if (qNum === 3) { qMo = 0; qYr = fy + 1; }
+      else                 { qMo = 3; qYr = fy + 1; }
+      var val = isoDate(new Date(qYr, qMo, 1));
+      opts.push({ value: val, selected: selectedVal === val,
+        label: 'Q' + qNum + ' FY ' + fy + '–' + String(fy + 1).slice(2) });
+    }
+    return opts;
+  }
+
+  /* Last 5 fiscal (Jul 1) or calendar (Jan 1) years.
+     Value = ISO date of the first day of that year span. */
+  function buildAnnualOptions(fiscal, selectedVal) {
+    var opts = [], now = new Date(), y = now.getFullYear();
+    if (fiscal) {
+      var fyStart = now.getMonth() >= 6 ? y : y - 1;
+      for (var i = 0; i <= 4; i++) {
+        var fy  = fyStart - i;
+        var val = isoDate(new Date(fy, 6, 1)); /* July 1 */
+        opts.push({ value: val, selected: selectedVal ? selectedVal === val : i === 0,
+          label: 'FY ' + fy + '–' + String(fy + 1).slice(2) });
+      }
+    } else {
+      for (var i = 0; i <= 4; i++) {
+        var cy  = y - i;
+        var val = isoDate(new Date(cy, 0, 1)); /* Jan 1 */
+        opts.push({ value: val, selected: selectedVal ? selectedVal === val : i === 0,
+          label: String(cy) });
+      }
+    }
+    return opts;
+  }
+
+  /* ---- Shared date utilities ---- */
+  function isoDate(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+  function fmtMD(d)  { return d.toLocaleString('en-US', { month: 'short', day: 'numeric' }); }
+  function fmtMDY(d) { return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+
+  /* ---- On load: fetch config and bind interactive toggles ---- */
+  document.addEventListener('DOMContentLoaded', function() {
+    loadPipelineMode();
+    loadConfig();
+    loadDevModeState();
+    bindToggleLabel('devmode-checkbox',  'devmode-label');
+  });
+</script>
+
+</body>
+</html>
