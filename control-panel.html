@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Schaeffer Pipeline — Control Panel</title>
+  <title>Schaeffer System — Control Panel</title>
   <style>
     /* =========================================================
-       USC SCHAEFFER METRICS — PIPELINE CONTROL PANEL
+       USC SCHAEFFER METRICS — SYSTEM CONTROL PANEL
        Standalone HTML, no external dependencies.
        Designed for local use by Schaeffer Center staff.
 
@@ -475,7 +475,7 @@
       margin-right: 6px;
     }
 
-    /* ---------- pipeline status panel (Change 3) ---------- */
+    /* ---------- system status panel (Change 3) ---------- */
     @keyframes pulse {
       0%, 100% { opacity: 1;   transform: scale(1);    }
       50%       { opacity: 0.4; transform: scale(0.85); }
@@ -606,61 +606,23 @@
 
   <!-- ===================== SITE HEADER ===================== -->
   <header class="site-header">
-    <h1>Schaeffer Metrics — Pipeline Control Panel</h1>
-    <p>USC Schaeffer Center for Health Policy &amp; Economics &nbsp;·&nbsp; Weekly Pipeline Operations</p>
+    <h1>Schaeffer Metrics — System Control Panel</h1>
+    <p>USC Schaeffer Center for Health Policy &amp; Economics &nbsp;·&nbsp; Weekly System Operations</p>
   </header>
 
   <!-- ===================== SYSTEM MODE BANNER ===================== -->
   <div class="mode-banner mode-production" id="mode-banner">
     <div class="mode-banner-dot" id="mode-banner-dot"></div>
     <div class="mode-banner-text" id="mode-banner-text">
-      <strong>PRODUCTION</strong> — <span>Pipeline is live. Use the steps below to trigger a run.</span>
+      <strong>PRODUCTION</strong> — <span>System is live. Use the steps below to trigger a run.</span>
     </div>
   </div>
 
   <!-- DEV MODE WARNING BANNER removed — mode banner handles dev/production state -->
 
-  <!-- ===================== SECTION 1: PRE-FLIGHT ===================== -->
-  <section class="card" id="section-preflight">
-    <h2 class="card-heading">
-      <span class="step-num">1</span>
-      Verify Files Are Ready
-    </h2>
-    <p class="card-sub">
-      Box can take <strong>15–20 minutes</strong> to register new Quorum exports after they are placed in the folder.
-      Check that the expected files are available before triggering the pipeline.
-    </p>
-    <button class="btn btn-primary" id="btn-check" onclick="runPreflightCheck()">
-      Check File Status
-    </button>
-    <div class="result-box" id="preflight-result"></div>
-  </section>
-
-  <!-- ===================== SECTION 2: TRIGGER ===================== -->
-  <section class="card" id="section-trigger">
-    <h2 class="card-heading">
-      <span class="step-num">2</span>
-      Run the Pipeline
-    </h2>
-    <p class="card-sub">
-      Trigger the full Schaeffer Metrics pipeline. The button below is enabled only after a successful
-      pre-flight check confirms files are ready.
-    </p>
-
-    <button class="btn btn-gold" id="btn-run" disabled onclick="runPipeline()">
-      Run Pipeline
-    </button>
-
-    <div class="result-box" id="trigger-result"></div>
-
-    <div class="warn-note">
-      <strong>Do not trigger twice.</strong>
-    </div>
-  </section>
-
-  <!-- ===================== SECTION 3: STATUS ===================== -->
+  <!-- ===================== SYSTEM STATUS ===================== -->
   <section class="card" id="section-status">
-    <h2 class="card-heading">Pipeline Status</h2>
+    <h2 class="card-heading">System Status</h2>
 
     <div class="status-grid">
       <div class="status-item">
@@ -684,7 +646,7 @@
       <div class="report-options-row">
         <label class="row-heading">Report Options</label>
 
-        <!-- Weekly reports (functional — flags sent via webhook; pipeline support in Phase 4 backlog) -->
+        <!-- Weekly reports (functional — flags sent via webhook; system support in Phase 4 backlog) -->
         <div class="report-checkbox-group" style="margin-bottom:12px;">
           <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-deficiency" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Quorum Deficiency</label>
           <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Update</label>
@@ -710,10 +672,48 @@
             </div>
             <!-- Option picker — populated dynamically by onLeadershipPeriodChange() -->
             <div id="leadership-option-picker" class="leadership-opts-row"></div>
-            <p style="margin:6px 0 0; font-size:12px; color:#888;">These settings are sent to the pipeline when you click <strong>Run Pipeline</strong> above.</p>
+            <p style="margin:6px 0 0; font-size:12px; color:#888;">These settings are sent to the system when you click <strong>Run System</strong> above.</p>
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 1: PRE-FLIGHT ===================== -->
+  <section class="card" id="section-preflight">
+    <h2 class="card-heading">
+      <span class="step-num">1</span>
+      Verify Files Are Ready
+    </h2>
+    <p class="card-sub">
+      Box can take <strong>15–20 minutes</strong> to register new Quorum exports after they are placed in the folder.
+      Check that the expected files are available before triggering the system.
+    </p>
+    <button class="btn btn-primary" id="btn-check" onclick="runPreflightCheck()">
+      Check File Status
+    </button>
+    <div class="result-box" id="preflight-result"></div>
+  </section>
+
+  <!-- ===================== SECTION 2: RUN THE SYSTEM ===================== -->
+  <section class="card" id="section-trigger">
+    <h2 class="card-heading">
+      <span class="step-num">2</span>
+      Run the System
+    </h2>
+    <p class="card-sub">
+      Trigger the full Schaeffer Metrics system. The button below is enabled only after a successful
+      pre-flight check confirms files are ready.
+    </p>
+
+    <button class="btn btn-gold" id="btn-run" disabled onclick="runSystem()">
+      Run System
+    </button>
+
+    <div class="result-box" id="trigger-result"></div>
+
+    <div class="warn-note">
+      <strong>Do not trigger twice.</strong>
     </div>
   </section>
 
@@ -730,8 +730,8 @@
       <section class="card" id="section-devmode">
         <h2 class="card-heading">Dev Mode</h2>
         <p class="card-sub">
-          When Dev Mode is ON, all pipeline emails route exclusively to the Administrator.
-          The pipeline runs normally — only email routing changes. The warning banner at the top will be visible
+          When Dev Mode is ON, all system emails route exclusively to the Administrator.
+          The system runs normally — only email routing changes. The warning banner at the top will be visible
           as a reminder. Turn Dev Mode OFF before triggering a production run.
         </p>
         <div class="toggle-row" style="align-items:center; gap:16px;">
@@ -755,7 +755,7 @@
         </h2>
         <p class="card-sub">
           Settings are loaded from and saved to the Config Manager workflow on n8n Cloud.
-          Changes take effect on the next pipeline run.
+          Changes take effect on the next system run.
         </p>
 
         <div id="config-load-status">Loading configuration&hellip;</div>
@@ -785,7 +785,7 @@
           </div>
 
           <div class="config-field">
-            <label for="config-completion-signal-recipient">Pipeline Completion Alert Recipient</label>
+            <label for="config-completion-signal-recipient">System Completion Alert Recipient</label>
             <input type="email" class="config-text-input" id="config-completion-signal-recipient" placeholder="administrator@usc.edu">
           </div>
         </div>
@@ -826,7 +826,7 @@
   <!-- ===================== FOOTER ===================== -->
   <footer class="page-footer">
     This panel is for USC Schaeffer Center staff. Do not share externally.
-    &nbsp;·&nbsp; Schaeffer Metrics Pipeline via n8n Cloud
+    &nbsp;·&nbsp; Schaeffer Metrics System via n8n Cloud
   </footer>
 
 </div><!-- /.page-wrap -->
@@ -838,9 +838,9 @@
    * What this block does:
    *   runPreflightCheck() — calls box-file-check webhook, parses response,
    *     updates UI with file count and ready/not-ready status, and enables
-   *     the Run Pipeline button only on success.
+   *     the Run System button only on success.
    *
-   *   runPipeline() — shows a confirmation dialog, then calls schaeffer-run
+   *   runSystem() — shows a confirmation dialog, then calls schaeffer-run
    *     webhook and stamps a timestamp.
    *
    * Why this approach:
@@ -870,7 +870,7 @@
   const N8N_API_KEY      = ''; /* removed before public hosting — pause/resume disabled */
 
   /* ---- Workflow IDs ---- */
-  const WORKFLOW_ID_MAIN = 'rKeXXz6pU5teDwuT'; /* Main Pipeline */
+  const WORKFLOW_ID_MAIN = 'rKeXXz6pU5teDwuT'; /* Main System */
 
   /* ---- Webhook URLs ---- */
   const WEBHOOK_PREFLIGHT  = N8N_CLOUD_BASE + '/webhook/box-file-check';
@@ -889,7 +889,7 @@
   /*
    * FILE COUNT THRESHOLD
    *
-   * What: Minimum number of Box files required before the pipeline is
+   * What: Minimum number of Box files required before the system is
    *   considered "ready" when the webhook doesn't return an explicit
    *   `ready: true` field.
    *
@@ -899,7 +899,7 @@
    *
    * Why 6: Committees.csv moved to the Systems Files subfolder and is no
    *   longer part of the weekly Quorum upload set. The remaining 6 files
-   *   are the weekly Quorum exports this pipeline consumes.
+   *   are the weekly Quorum exports this system consumes.
    *
    * Affects: runPreflightCheck() fallback threshold logic below;
    *   also reflects whatever REQUIRED_FILE_COUNT the Config Manager returns.
@@ -998,7 +998,7 @@
         preflightPassed = true;
         const runBtn = document.getElementById('btn-run');
         runBtn.disabled = false;
-        runBtn.innerHTML = 'Run Pipeline'; /* reset label if a previous trigger locked it */
+        runBtn.innerHTML = 'Run System'; /* reset label if a previous trigger locked it */
 
       } else {
         const countPhrase = fileCount !== null
@@ -1026,7 +1026,7 @@
   }
 
   /* ============================================================
-     STEP 2 — PIPELINE TRIGGER
+     STEP 2 — SYSTEM TRIGGER
   ============================================================ */
 
   /*
@@ -1037,7 +1037,7 @@
    * (which reports to generate on this specific execution). Storing them in Box
    * requires a separate save + Box API round-trip before triggering, and risks a
    * race condition where Box hasn't indexed the updated file yet. Passing them
-   * directly on the webhook URL is atomic — the pipeline sees exactly what the
+   * directly on the webhook URL is atomic — the system sees exactly what the
    * user chose at trigger time.
    *
    * Read Config merges these webhook params on top of Box config so all downstream
@@ -1063,16 +1063,16 @@
       }
     }
 
-    /* Weekly reports (pipeline support in Phase 4 backlog — flags stored for future use) */
+    /* Weekly reports — always send explicit flag so system defaults to off when unchecked */
     const sendWD = !!(document.getElementById('opt-weekly-deficiency') || {}).checked;
     const sendWU = !!(document.getElementById('opt-weekly-update') || {}).checked;
-    if (sendWD) params.set('SEND_WEEKLY_DEFICIENCY', 'true');
-    if (sendWU) params.set('SEND_WEEKLY_UPDATE', 'true');
+    params.set('SEND_WEEKLY_DEFICIENCY', sendWD ? 'true' : 'false');
+    params.set('SEND_WEEKLY_UPDATE', sendWU ? 'true' : 'false');
 
     return params.toString();
   }
 
-  async function runPipeline() {
+  async function runSystem() {
     if (!preflightPassed) {
       alert('Please complete the pre-flight check first (Step 1).');
       return;
@@ -1092,8 +1092,8 @@
 
     /* Confirmation gate */
     const confirmed = confirm(
-      'Are you sure you want to trigger the Schaeffer pipeline?\n\n' +
-      'The pipeline will process this week\'s Quorum files and send ' +
+      'Are you sure you want to trigger the Schaeffer system?\n\n' +
+      'The system will process this week\'s Quorum files and send ' +
       'the metrics report. Do not trigger twice.' + reportsNote
     );
     if (!confirmed) return;
@@ -1113,7 +1113,7 @@
         headers: { 'Accept': 'application/json' }
       });
 
-      /* Any 2xx is success — pipeline is async, no meaningful body expected */
+      /* Any 2xx is success — system is async, no meaningful body expected */
       if (!resp.ok) {
         throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
       }
@@ -1128,7 +1128,7 @@
       startCompletionPolling(triggerTime, stamp);
 
       /* Lock the button to prevent double-trigger this session */
-      btn.innerHTML = 'Pipeline Triggered';
+      btn.innerHTML = 'System Triggered';
       btn.disabled = true;
       preflightPassed = false; /* require fresh pre-flight for any re-run */
 
@@ -1142,15 +1142,15 @@
 
       /* Re-enable on failure so staff can retry */
       btn.disabled = false;
-      btn.innerHTML = 'Run Pipeline';
+      btn.innerHTML = 'Run System';
     }
   }
 
   /*
    * startCompletionPolling — polls GET /webhook/schaeffer-config every 20 seconds
-   * after a pipeline trigger. When cfg.LAST_RUN (an ISO timestamp written by the
-   * "Record Last Run" node at the end of the pipeline) is newer than triggerTime,
-   * the pipeline has genuinely completed. Updates the trigger result box and the
+   * after a system trigger. When cfg.LAST_RUN (an ISO timestamp written by the
+   * "Record Last Run" node at the end of the system) is newer than triggerTime,
+   * the system has genuinely completed. Updates the trigger result box and the
    * status grid Last Run cell with the real completion time in ET.
    *
    * Why the config webhook and not the executions REST API: the REST API requires
@@ -1186,20 +1186,48 @@
 
         const lastRunISO = cfg.LAST_RUN;
         if (lastRunISO) {
-          const lastRunDate = new Date(lastRunISO);
-          if (!isNaN(lastRunDate.getTime()) && lastRunDate > triggerTime) {
-            /* Pipeline genuinely complete — LAST_RUN was written after this trigger */
+          /* Compare as date strings — ISO format is lexicographically sortable so this
+           * works for both "YYYY-MM-DD" date-only and full "YYYY-MM-DDTHH:mm:ssZ" values.
+           * For date-only values on the same calendar day as the trigger we treat it as
+           * complete: the system runs at most once per day so same-day = this run. */
+          const triggerDateStr = isoDate(triggerTime);
+          const lastRunDateStr = lastRunISO.substring(0, 10);
+          const isDateOnly = lastRunISO.length === 10;
+          let isComplete = false;
+          if (lastRunDateStr > triggerDateStr) {
+            isComplete = true;
+          } else if (lastRunDateStr === triggerDateStr) {
+            if (!isDateOnly) {
+              const d = new Date(lastRunISO);
+              isComplete = !isNaN(d.getTime()) && d > triggerTime;
+            } else {
+              isComplete = true; /* date-only, same day — system runs at most once per day */
+            }
+          }
+
+          if (isComplete) {
+            /* System genuinely complete — LAST_RUN was written after this trigger */
             clearInterval(timer);
 
-            const completedAt = lastRunDate.toLocaleString('en-US', {
-              timeZone: 'America/New_York',
-              month: 'short', day: 'numeric', year: 'numeric',
-              hour: 'numeric', minute: '2-digit', hour12: true
-            }) + ' ET';
+            /* Build display string: date+time for ISO, date-only for date strings */
+            const lastRunDate = isDateOnly
+              ? null
+              : new Date(lastRunISO);
+            const completedAt = (lastRunDate && !isNaN(lastRunDate.getTime()))
+              ? lastRunDate.toLocaleString('en-US', {
+                  timeZone: 'America/New_York',
+                  month: 'short', day: 'numeric', year: 'numeric',
+                  hour: 'numeric', minute: '2-digit', hour12: true
+                }) + ' ET'
+              : (function() {
+                  const [yr, mo, dy] = lastRunISO.split('-').map(Number);
+                  return new Date(yr, mo - 1, dy)
+                    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                })();
 
             showResult('trigger-result', 'success',
               'Triggered at: ' + stamp +
-              '<br><span style="font-size:12px;">&#10003; Complete at ' + completedAt + '</span>');
+              '<br><span style="font-size:12px;">&#10003; Complete — ' + completedAt + '</span>');
 
             /* Refresh Last Run in the status grid immediately */
             const lastRunEl = document.getElementById('status-last-run');
@@ -1327,13 +1355,17 @@
           const adminEmail = cfg.TEST_EMAIL || 'Administrator';
           recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
         } else {
+          const rr = semiToLines(cfg.RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
           const lr = semiToLines(cfg.LEADERSHIP_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
           const dr = semiToLines(cfg.DASHBOARD_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
-          recipientsEl.innerHTML = 'Leadership: <strong>' + lr + '</strong><br>Dashboard: <strong>' + dr + '</strong>';
+          recipientsEl.innerHTML =
+            'Deficiency: <strong>' + rr + '</strong><br>' +
+            'Leadership: <strong>' + lr + '</strong><br>' +
+            'Dashboard: <strong>' + dr + '</strong>';
         }
       }
 
-      /* Update Last Run — LAST_RUN is ISO UTC (set by pipeline); LAST_UPDATED is date-only fallback */
+      /* Update Last Run — LAST_RUN is ISO UTC (set by system); LAST_UPDATED is date-only fallback */
       const lastRunEl = document.getElementById('status-last-run');
       const lastRunVal = cfg.LAST_RUN || cfg.LAST_UPDATED;
       if (lastRunEl && lastRunVal) {
@@ -1390,7 +1422,7 @@
       /* Build payload from current field values */
       /* Persistent settings only — report flags (SEND_LEADERSHIP_REPORT, REPORT_MODE,
          REPORT_REFERENCE_DATE, etc.) are NOT saved here. They are per-run intent and
-         are sent directly via webhook query params when Run Pipeline is triggered. */
+         are sent directly via webhook query params when Run System is triggered. */
       const payload = {
         TEST_EMAIL:                   getVal('config-test-email'),
         RECIPIENTS:                   linesToSemi('config-recipients'),
@@ -1416,7 +1448,9 @@
       if (payload.REQUIRED_FILE_COUNT != null) REQUIRED_FILE_COUNT = payload.REQUIRED_FILE_COUNT;
 
       showResult('config-result', 'success',
-        '✓ <strong>Configuration saved.</strong> Changes will take effect on the next pipeline run.');
+        '✓ <strong>Configuration saved.</strong> Changes will take effect on the next system run.');
+      /* Refresh status grid so saved recipient changes appear immediately */
+      loadConfig();
 
     } catch (err) {
       const isCors = (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
@@ -1493,8 +1527,8 @@
   ============================================================ */
 
   /*
-   * What: loadPipelineMode() calls GET /api/v1/workflows/{WORKFLOW_ID_MAIN}
-   *   to check whether the Main Pipeline is active or deactivated.
+   * What: loadSystemMode() calls GET /api/v1/workflows/{WORKFLOW_ID_MAIN}
+   *   to check whether the Main System workflow is active or deactivated.
    *   Updates the mode banner at the top of the page with one of three states:
    *     PRODUCTION  — workflow.active === true
    *     PAUSED      — workflow.active === false
@@ -1505,18 +1539,18 @@
    *   and schedule triggers (though we have no schedule — see ROADMAP.md).
    *
    * Why called on page load: gives Jennifer immediate visual context about
-   *   pipeline state before she touches any button.
+   *   system state before she touches any button.
    *
    * Depends on: N8N_CLOUD_BASE, N8N_API_KEY, WORKFLOW_ID_MAIN constants;
    *   #mode-banner, #mode-banner-dot, #mode-banner-text DOM elements.
    */
-  function loadPipelineMode() {
-    /* Cloud pipeline is always active — show PRODUCTION by default.
+  function loadSystemMode() {
+    /* Cloud system is always active — show PRODUCTION by default.
      * The REST API endpoint that checks active status requires CORS headers
      * not available from a local server; mode is overridden by loadDevModeState()
      * when TEST_MODE is ON. */
     setBanner('mode-production',
-      '<strong>PRODUCTION</strong> — <span>Pipeline is live. Use the steps below to trigger a run.</span>');
+      '<strong>PRODUCTION</strong> — <span>System is live. Use the steps below to trigger a run.</span>');
   }
 
   /* ---- Helper: swap mode class and update banner text ---- */
@@ -1537,14 +1571,14 @@
    * What: loadDevModeState() calls GET /webhook/schaeffer-config (same endpoint
    *   as loadConfig()) to read the current TEST_MODE value. Updates the devmode
    *   checkbox, label, and #dev-mode-banner visibility. Also swaps the system mode
-   *   banner to mode-dev when dev mode is active, or restores it via loadPipelineMode()
+   *   banner to mode-dev when dev mode is active, or restores it via loadSystemMode()
    *   when dev mode is off.
    *
    * Why the same config webhook: TEST_MODE is one of the 18 settings in
    *   pipeline-config.csv. No separate endpoint is needed; the config GET returns all
    *   18 settings including TEST_MODE. (D-03: existing TEST_MODE key, no new schema.)
    *
-   * Depends on: WEBHOOK_CONFIG_GET constant; setBanner(), loadPipelineMode(), showResult();
+   * Depends on: WEBHOOK_CONFIG_GET constant; setBanner(), loadSystemMode(), showResult();
    *   #devmode-checkbox, #devmode-label, #dev-mode-banner DOM IDs.
    */
   async function loadDevModeState() {
@@ -1587,10 +1621,10 @@
       const modeBadge = document.getElementById('status-mode-badge');
       if (isDevMode) {
         setBanner('mode-dev',
-          '<strong>DEV MODE</strong> — <span>Emails go to Administrator only. Pipeline trigger is still active.</span>');
+          '<strong>DEV MODE</strong> — <span>Emails go to Administrator only. System trigger is still active.</span>');
         if (modeBadge) { modeBadge.textContent = 'DEV MODE'; modeBadge.className = 'badge badge-yellow'; }
       } else {
-        loadPipelineMode();
+        loadSystemMode();
         if (modeBadge) { modeBadge.textContent = 'PRODUCTION'; modeBadge.className = 'badge badge-green'; }
       }
 
@@ -1601,9 +1635,13 @@
           const adminEmail = cfg.TEST_EMAIL || 'Administrator';
           recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
         } else {
+          const rr = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
           const lr = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
           const dr = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
-          recipientsEl.innerHTML = 'Leadership: <strong>' + lr + '</strong><br>Dashboard: <strong>' + dr + '</strong>';
+          recipientsEl.innerHTML =
+            'Deficiency: <strong>' + rr + '</strong><br>' +
+            'Leadership: <strong>' + lr + '</strong><br>' +
+            'Dashboard: <strong>' + dr + '</strong>';
         }
       }
 
@@ -1679,7 +1717,7 @@
    * What: Show/hide the Period + Option panel when the Leadership Reports
    *   checkbox is toggled. Initializes the option picker on first show.
    * Why: Leadership Reports are on-demand (quarterly or less often); the
-   *   checkbox tells the pipeline whether to generate the report on the next trigger.
+   *   checkbox tells the system whether to generate the report on the next trigger.
    */
   function onLeadershipReportToggle() {
     var cb    = document.getElementById('opt-leadership-report');
@@ -1881,7 +1919,7 @@
 
   /* ---- On load: fetch config and bind interactive toggles ---- */
   document.addEventListener('DOMContentLoaded', function() {
-    loadPipelineMode();
+    loadSystemMode();
     loadConfig();
     loadDevModeState();
     bindToggleLabel('devmode-checkbox',  'devmode-label');
