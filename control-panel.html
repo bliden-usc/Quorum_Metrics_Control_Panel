@@ -642,40 +642,6 @@
         </div>
       </div>
 
-      <!-- Report Options — weekly rows are display-only; Leadership Report is functional -->
-      <div class="report-options-row">
-        <label class="row-heading">Report Options</label>
-
-        <!-- Weekly reports (functional — flags sent via webhook; system support in Phase 4 backlog) -->
-        <div class="report-checkbox-group" style="margin-bottom:12px;">
-          <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-deficiency" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Quorum Deficiency</label>
-          <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Update</label>
-        </div>
-
-        <!-- Leadership Report (functional) -->
-        <div>
-          <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; color:#333; cursor:pointer; user-select:none;">
-            <input type="checkbox" id="opt-leadership-report" style="width:15px; height:15px; accent-color:#990000;" onchange="onLeadershipReportToggle()">
-            Leadership Reports
-          </label>
-          <div id="leadership-options-panel" class="leadership-opts" style="display:none;">
-            <!-- Period selector -->
-            <div class="leadership-opts-row">
-              <label class="field-lbl" for="config-leadership-period">Period:</label>
-              <select class="config-select" id="config-leadership-period" style="max-width:170px;" onchange="onLeadershipPeriodChange()">
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-                <option value="annual" selected>Annual</option>
-                <option value="custom">Custom</option>
-              </select>
-            </div>
-            <!-- Option picker — populated dynamically by onLeadershipPeriodChange() -->
-            <div id="leadership-option-picker" class="leadership-opts-row"></div>
-            <p style="margin:6px 0 0; font-size:12px; color:#888;">These settings are sent to the system when you click <strong>Run System</strong> above.</p>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -702,9 +668,42 @@
       Run the System
     </h2>
     <p class="card-sub">
-      Trigger the full Schaeffer Metrics system. The button below is enabled only after a successful
-      pre-flight check confirms files are ready.
+      Select which reports to send, then trigger the system. The button is enabled only after
+      a successful pre-flight check.
     </p>
+
+    <!-- Report Options — per-run flags sent as webhook query params -->
+    <div style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:3px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:10px;">Report Options</div>
+
+      <!-- Weekly reports -->
+      <div class="report-checkbox-group" style="margin-bottom:12px;">
+        <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-deficiency" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Quorum Deficiency</label>
+        <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Update</label>
+      </div>
+
+      <!-- Leadership Report -->
+      <div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#333;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="opt-leadership-report" style="width:15px;height:15px;accent-color:#990000;" onchange="onLeadershipReportToggle()">
+          Leadership Reports
+        </label>
+        <div id="leadership-options-panel" class="leadership-opts" style="display:none;">
+          <div class="leadership-opts-row">
+            <label class="field-lbl" for="config-leadership-period">Period:</label>
+            <select class="config-select" id="config-leadership-period" style="max-width:170px;" onchange="onLeadershipPeriodChange()">
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annual" selected>Annual</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div id="leadership-option-picker" class="leadership-opts-row"></div>
+          <p style="margin:6px 0 0;font-size:12px;color:#888;">These settings are sent when you click <strong>Run System</strong>.</p>
+        </div>
+      </div>
+    </div>
 
     <button class="btn btn-gold" id="btn-run" disabled onclick="runSystem()">
       Run System
