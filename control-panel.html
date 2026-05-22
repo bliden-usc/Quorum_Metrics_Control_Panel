@@ -1310,15 +1310,18 @@
          REPORT_REFERENCE_DATE (for auto-computed periods) and REPORT_CUSTOM_START /
          REPORT_CUSTOM_END (for custom mode). Restored below with the leadership controls. */
 
-      /* Leadership Report controls — restore checkbox, period selector, and option picker */
-      var sendLR = cfg.SEND_LEADERSHIP_REPORT === true || cfg.SEND_LEADERSHIP_REPORT === 'true';
+      /* Leadership Report period/mode — restore selector and picker from config.
+         SEND_LEADERSHIP_REPORT is a per-run flag NOT stored in Box config, so the
+         Config Manager always returns it as false. Do NOT restore the checkbox here —
+         doing so would silently uncheck it whenever Save Settings is clicked, which
+         was causing "No Leadership report sent" on runs where Barry saved config
+         mid-session and didn't notice the checkbox got reset. */
       var lrCb = document.getElementById('opt-leadership-report');
-      if (lrCb) lrCb.checked = sendLR;
       var lrPanel = document.getElementById('leadership-options-panel');
-      if (lrPanel) lrPanel.style.display = sendLR ? 'block' : 'none';
       var lrPeriodSel = document.getElementById('config-leadership-period');
       if (lrPeriodSel && cfg.REPORT_MODE) lrPeriodSel.value = cfg.REPORT_MODE;
-      if (sendLR && cfg.REPORT_MODE) {
+      var currentlySendingLR = lrCb && lrCb.checked;
+      if (currentlySendingLR && cfg.REPORT_MODE) {
         var lrPicker = document.getElementById('leadership-option-picker');
         if (lrPicker) {
           var refDate  = cfg.REPORT_REFERENCE_DATE || null;
