@@ -1694,10 +1694,28 @@
         throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
       }
 
-      /* Refresh UI from live config before showing success so it reflects actual state */
-      await loadDevModeState();
+      /* Update UI directly from the value we just saved.
+         Re-fetching from the server here returns stale data — Box write
+         hasn't propagated by the time the GET responds (causes the
+         "requires two clicks" bug). Trust newVal instead. */
+      const isDevMode = newVal;
+      const cb2 = document.getElementById('devmode-checkbox');
+      if (cb2) cb2.checked = isDevMode;
+      const lbl = document.getElementById('devmode-label');
+      if (lbl) lbl.textContent = isDevMode ? 'DEV MODE: ON' : 'DEV MODE: OFF';
+      const devBanner = document.getElementById('dev-mode-banner');
+      if (devBanner) devBanner.style.display = isDevMode ? 'block' : 'none';
+      const modeBadge = document.getElementById('status-mode-badge');
+      if (isDevMode) {
+        setBanner('mode-dev',
+          '<strong>DEV MODE</strong> — <span>Emails go to Administrator only. System trigger is still active.</span>');
+        if (modeBadge) { modeBadge.textContent = 'DEV MODE'; modeBadge.className = 'badge badge-yellow'; }
+      } else {
+        loadSystemMode();
+        if (modeBadge) { modeBadge.textContent = 'PRODUCTION'; modeBadge.className = 'badge badge-green'; }
+      }
       showResult('devmode-result', 'success',
-        '&#10003; Dev mode ' + (newVal ? 'enabled.' : 'disabled.'));
+        '&#10003; Dev mode ' + (isDevMode ? 'enabled.' : 'disabled.'));
 
     } catch (err) {
       clearTimeout(timeoutId);
