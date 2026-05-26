@@ -764,7 +764,7 @@
           <div class="config-group-heading">Email Settings</div>
 
           <div class="config-field">
-            <label for="config-test-email">Administrator Email (used when Dev Mode is ON)</label>
+            <label for="config-test-email">Administrator Email <small style="font-weight:400;color:#666;">(all emails route here in Dev Mode — does not affect the recipient lists below)</small></label>
             <input type="email" class="config-text-input" id="config-test-email" placeholder="administrator@usc.edu">
           </div>
 
@@ -1348,13 +1348,17 @@
       const recipientsEl = document.getElementById('status-recipients');
       if (recipientsEl) {
         const isTest = cfg.TEST_MODE === true || cfg.TEST_MODE === 'true';
+        const rr = semiToLines(cfg.RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
+        const lr = semiToLines(cfg.LEADERSHIP_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
+        const dr = semiToLines(cfg.DASHBOARD_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         if (isTest) {
-          const adminEmail = cfg.ADMIN_EMAIL || 'Administrator';
-          recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
+          const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
+          recipientsEl.innerHTML =
+            '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
+            '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr + '<br>' +
+            'Prod Leadership: ' + lr + '<br>' +
+            'Prod Dashboard: ' + dr + '</span>';
         } else {
-          const rr = semiToLines(cfg.RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
-          const lr = semiToLines(cfg.LEADERSHIP_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
-          const dr = semiToLines(cfg.DASHBOARD_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
           recipientsEl.innerHTML =
             'Deficiency: <strong>' + rr + '</strong><br>' +
             'Leadership: <strong>' + lr + '</strong><br>' +
@@ -1627,17 +1631,21 @@
       /* Refresh Email Recipients summary — same cfg already fetched, no extra network call */
       const recipientsEl = document.getElementById('status-recipients');
       if (recipientsEl) {
+        const rr2 = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+        const lr2 = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+        const dr2 = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
         if (isDevMode) {
-          const adminEmail = cfg.ADMIN_EMAIL || 'Administrator';
-          recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
-        } else {
-          const rr = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
-          const lr = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
-          const dr = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+          const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
           recipientsEl.innerHTML =
-            'Deficiency: <strong>' + rr + '</strong><br>' +
-            'Leadership: <strong>' + lr + '</strong><br>' +
-            'Dashboard: <strong>' + dr + '</strong>';
+            '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
+            '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr2 + '<br>' +
+            'Prod Leadership: ' + lr2 + '<br>' +
+            'Prod Dashboard: ' + dr2 + '</span>';
+        } else {
+          recipientsEl.innerHTML =
+            'Deficiency: <strong>' + rr2 + '</strong><br>' +
+            'Leadership: <strong>' + lr2 + '</strong><br>' +
+            'Dashboard: <strong>' + dr2 + '</strong>';
         }
       }
 
