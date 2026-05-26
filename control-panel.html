@@ -794,11 +794,6 @@
           <div class="config-group-heading">Thresholds</div>
 
           <div class="config-field">
-            <label for="config-barry-items-threshold">Min Items for Administrator Alert</label>
-            <input type="number" class="config-number-input" id="config-barry-items-threshold" min="1">
-          </div>
-
-          <div class="config-field">
             <label for="config-required-file-count">Required Quorum File Count (pre-flight)</label>
             <input type="number" class="config-number-input" id="config-required-file-count" min="1">
           </div>
@@ -1298,7 +1293,7 @@
       /* --- Populate fields --- */
 
       /* Text inputs */
-      setVal('config-test-email',                    cfg.TEST_EMAIL                  || '');
+      setVal('config-test-email',                    cfg.ADMIN_EMAIL                 || '');
       setVal('config-completion-signal-recipient',   cfg.COMPLETION_SIGNAL_RECIPIENT || '');
 
       /* Textareas — semicolon-separated → one per line */
@@ -1339,7 +1334,7 @@
       }
 
       /* Number inputs */
-      setVal('config-barry-items-threshold',  cfg.BARRY_ITEMS_THRESHOLD  != null ? String(cfg.BARRY_ITEMS_THRESHOLD)  : '');
+
       setVal('config-required-file-count',    cfg.REQUIRED_FILE_COUNT    != null ? String(cfg.REQUIRED_FILE_COUNT)    : '');
       setVal('config-open-window-days',       cfg.OPEN_WINDOW_DAYS       != null ? String(cfg.OPEN_WINDOW_DAYS)       : '');
 
@@ -1354,7 +1349,7 @@
       if (recipientsEl) {
         const isTest = cfg.TEST_MODE === true || cfg.TEST_MODE === 'true';
         if (isTest) {
-          const adminEmail = cfg.TEST_EMAIL || 'Administrator';
+          const adminEmail = cfg.ADMIN_EMAIL || 'Administrator';
           recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
         } else {
           const rr = semiToLines(cfg.RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
@@ -1426,12 +1421,11 @@
          REPORT_REFERENCE_DATE, etc.) are NOT saved here. They are per-run intent and
          are sent directly via webhook query params when Run System is triggered. */
       const payload = {
-        TEST_EMAIL:                   getVal('config-test-email'),
+        ADMIN_EMAIL:                  getVal('config-test-email'),
         RECIPIENTS:                   linesToSemi('config-recipients'),
         LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
-        BARRY_ITEMS_THRESHOLD:        toNumOrNull('config-barry-items-threshold'),
         REQUIRED_FILE_COUNT:          toNumOrNull('config-required-file-count'),
         OPEN_WINDOW_DAYS:             toNumOrNull('config-open-window-days')
       };
@@ -1634,7 +1628,7 @@
       const recipientsEl = document.getElementById('status-recipients');
       if (recipientsEl) {
         if (isDevMode) {
-          const adminEmail = cfg.TEST_EMAIL || 'Administrator';
+          const adminEmail = cfg.ADMIN_EMAIL || 'Administrator';
           recipientsEl.innerHTML = 'Dev Mode active — all emails going to <strong>' + adminEmail + '</strong> only.';
         } else {
           const rr = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
