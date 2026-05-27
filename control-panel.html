@@ -636,20 +636,28 @@
         <label>Last Run</label>
         <div class="status-val" id="status-last-run">—</div>
       </div>
-      <div class="status-item" style="grid-column: 1 / -1;">
-        <label>Email Recipients</label>
-        <div class="status-val" style="font-weight:400;font-size:13px;color:#666;" id="status-recipients">
-          Loading…
-        </div>
-      </div>
-
     </div>
   </section>
 
-  <!-- ===================== SECTION 1: PRE-FLIGHT ===================== -->
-  <section class="card" id="section-preflight">
+  <!-- ===================== SECTION 1: DOWNLOAD QUORUM FILES ===================== -->
+  <section class="card" id="section-download">
     <h2 class="card-heading">
       <span class="step-num">1</span>
+      Download Quorum Files
+    </h2>
+    <p class="card-sub">
+      Before running the system, download the required files from Quorum and upload them to Box.
+      Allow <strong>15–20 minutes</strong> after uploading for Box to register the files.
+    </p>
+    <a href="quorum-download-guide.html" class="btn btn-primary" style="text-decoration:none;display:inline-block;">
+      Open Download Guide
+    </a>
+  </section>
+
+  <!-- ===================== SECTION 2: PRE-FLIGHT ===================== -->
+  <section class="card" id="section-preflight">
+    <h2 class="card-heading">
+      <span class="step-num">2</span>
       Verify Files Are Ready
     </h2>
     <p class="card-sub">
@@ -662,10 +670,10 @@
     <div class="result-box" id="preflight-result"></div>
   </section>
 
-  <!-- ===================== SECTION 2: RUN THE SYSTEM ===================== -->
+  <!-- ===================== SECTION 3: RUN THE SYSTEM ===================== -->
   <section class="card" id="section-trigger">
     <h2 class="card-heading">
-      <span class="step-num">2</span>
+      <span class="step-num">3</span>
       Run the System
     </h2>
     <p class="card-sub">
@@ -674,7 +682,7 @@
     </p>
 
     <!-- Report Options — per-run flags sent as webhook query params -->
-    <div style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:3px;padding:14px 16px;margin-bottom:18px;">
+    <div style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:3px;padding:14px 16px;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:10px;">Report Options</div>
 
       <!-- Weekly reports -->
@@ -704,6 +712,12 @@
           <p style="margin:6px 0 0;font-size:12px;color:#888;">These settings are sent when you click <strong>Run System</strong>.</p>
         </div>
       </div>
+    </div>
+
+    <!-- Email Recipients — moved here so staff can confirm who will receive emails before triggering -->
+    <div style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:3px;padding:12px 16px;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:8px;">Email Recipients</div>
+      <div style="font-size:13px;color:#555;line-height:1.6;" id="status-recipients">Loading…</div>
     </div>
 
     <button class="btn btn-gold" id="btn-run" disabled onclick="runSystem()">
@@ -1694,28 +1708,10 @@
         throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
       }
 
-      /* Update UI directly from the value we just saved.
-         Re-fetching from the server here returns stale data — Box write
-         hasn't propagated by the time the GET responds (causes the
-         "requires two clicks" bug). Trust newVal instead. */
-      const isDevMode = newVal;
-      const cb2 = document.getElementById('devmode-checkbox');
-      if (cb2) cb2.checked = isDevMode;
-      const lbl = document.getElementById('devmode-label');
-      if (lbl) lbl.textContent = isDevMode ? 'DEV MODE: ON' : 'DEV MODE: OFF';
-      const devBanner = document.getElementById('dev-mode-banner');
-      if (devBanner) devBanner.style.display = isDevMode ? 'block' : 'none';
-      const modeBadge = document.getElementById('status-mode-badge');
-      if (isDevMode) {
-        setBanner('mode-dev',
-          '<strong>DEV MODE</strong> — <span>Emails go to Administrator only. System trigger is still active.</span>');
-        if (modeBadge) { modeBadge.textContent = 'DEV MODE'; modeBadge.className = 'badge badge-yellow'; }
-      } else {
-        loadSystemMode();
-        if (modeBadge) { modeBadge.textContent = 'PRODUCTION'; modeBadge.className = 'badge badge-green'; }
-      }
+      /* Refresh UI from live config before showing success so it reflects actual state */
+      await loadDevModeState();
       showResult('devmode-result', 'success',
-        '&#10003; Dev mode ' + (isDevMode ? 'enabled.' : 'disabled.'));
+        '&#10003; Dev mode ' + (newVal ? 'enabled.' : 'disabled.'));
 
     } catch (err) {
       clearTimeout(timeoutId);
