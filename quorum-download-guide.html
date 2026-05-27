@@ -87,17 +87,11 @@
 
     /* ---------- step numbers ---------- */
     .step-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: #990000;
-      color: #fff;
-      font-size: 13px;
       font-weight: 700;
+      color: #333;
+      font-size: 14px;
       flex-shrink: 0;
+      min-width: 20px;
     }
 
     /* ---------- numbered step list ---------- */
@@ -349,7 +343,7 @@
 
   <!-- ===================== HEADER ===================== -->
   <header class="site-header">
-    <h1>Quorum Weekly Download Guide</h1>
+    <h1>Quorum Download Guide</h1>
     <p>USC Schaeffer Center for Health Policy &amp; Economics &nbsp;·&nbsp; Step-by-step Quorum export instructions</p>
   </header>
 
@@ -377,7 +371,7 @@
   <section class="card">
     <h2 class="card-heading">
       <span class="section-badge">A</span>
-      Outbox Emails — Opened <span class="time-phrase" id="a-heading-time">in the last month</span>
+      Outbox Emails
     </h2>
     <ol class="step-list">
       <li>
@@ -514,9 +508,6 @@
     <h2 class="card-heading">Upload All 6 Files to Box</h2>
     <p style="margin:0 0 8px;">Move or upload all 6 downloaded files to:</p>
     <code class="box-path">Box \ Schaeffer EA \ Public Policy \ Quorum Metrics \ Quorum Downloads (Weekly)</code>
-    <div class="success-note" style="margin-top:14px;">
-      Also confirm that <strong>Committees.csv</strong> is already present in that folder before running the system.
-    </div>
   </section>
 
   <!-- ===================== WAIT WARNING ===================== -->
@@ -628,21 +619,9 @@
    *   #a-heading-time   — section A heading phrase ("in the last month")
    */
   var TIMEFRAME_DATA = {
-    month: {
-      filterPhrase:  'In the last month',
-      headingPhrase: 'in the last month',
-      listPrefix:    'Last month'
-    },
-    '3months': {
-      filterPhrase:  'In the last 3 months',
-      headingPhrase: 'in the last 3 months',
-      listPrefix:    'Last 3 months'
-    },
-    '12months': {
-      filterPhrase:  'In the last 12 months',
-      headingPhrase: 'in the last 12 months',
-      listPrefix:    'Last 12 months'
-    }
+    month:    { filterPhrase: 'In the last month',    listPrefix: 'Last month'    },
+    '3months':  { filterPhrase: 'In the last 3 months',  listPrefix: 'Last 3 months'  },
+    '12months': { filterPhrase: 'In the last 12 months', listPrefix: 'Last 12 months' }
   };
 
   function updateTimeframe() {
@@ -653,10 +632,6 @@
     document.querySelectorAll('.time-filter').forEach(function(el) {
       el.textContent = data.filterPhrase;
     });
-
-    /* Section A heading */
-    var headingEl = document.getElementById('a-heading-time');
-    if (headingEl) headingEl.textContent = data.headingPhrase;
 
     /* List name prefixes */
     document.querySelectorAll('.list-name-contacts').forEach(function(el) {
