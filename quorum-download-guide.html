@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Schaeffer Metrics — Quorum Download Guide</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23990000'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-weight='bold' font-size='13' fill='%23FFCC00' text-anchor='middle' letter-spacing='0.5'%3EUSC%3C/text%3E%3C/svg%3E">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #e8e8e8;
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      color: #333;
+      font-size: 15px;
+    }
+
+    .page-wrap {
+      max-width: 760px;
+      margin: 32px auto 48px;
+      padding: 0 16px;
+    }
+
+    /* ---------- site header ---------- */
+    .site-header {
+      background: #990000;
+      color: #fff;
+      padding: 20px 28px;
+      border-bottom: 4px solid #FFCC00;
+      border-radius: 3px 3px 0 0;
+    }
+    .site-header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .site-header p {
+      margin: 5px 0 0;
+      font-size: 13px;
+      opacity: 0.78;
+    }
+
+    /* ---------- cards ---------- */
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-top: none;
+      padding: 24px 28px;
+      margin-bottom: 0;
+    }
+    .card + .card { border-top: 1px solid #ddd; }
+    .card:last-child { border-radius: 0 0 3px 3px; }
+
+    .card-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #990000;
+    }
+    .card-sub {
+      margin: 0 0 18px;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.55;
+    }
+
+    /* ---------- section letter badges ---------- */
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #990000;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ---------- step numbers ---------- */
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #990000;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ---------- numbered step list ---------- */
+    .step-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .step-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      line-height: 1.5;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-list .step-body { flex: 1; }
+    .step-list .step-path {
+      display: inline-block;
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 1px 7px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: #555;
+    }
+    .step-list .step-filter {
+      margin-top: 5px;
+      padding: 8px 12px;
+      background: #f9f9f9;
+      border-left: 3px solid #FFCC00;
+      border-radius: 0 3px 3px 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .step-list .step-filter ul {
+      margin: 4px 0 0 0;
+      padding-left: 20px;
+    }
+    .step-list .step-filter li {
+      display: list-item;
+      padding: 2px 0;
+      border: none;
+    }
+
+    /* ---------- sub-section (D, E) ---------- */
+    .sub-section {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+    }
+    .sub-section-heading {
+      font-size: 13px;
+      font-weight: 700;
+      color: #990000;
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sub-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #990000;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ---------- timeframe selector card ---------- */
+    .timeframe-card {
+      background: #fff8e1;
+      border: 1px solid #ddd;
+      border-top: none;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .timeframe-card label {
+      font-weight: 600;
+      font-size: 14px;
+      color: #5a4400;
+      white-space: nowrap;
+    }
+    .timeframe-select {
+      padding: 7px 12px;
+      border: 2px solid #FFCC00;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+    }
+    .timeframe-card .timeframe-note {
+      font-size: 13px;
+      color: #856404;
+    }
+
+    /* ---------- alert / warning note ---------- */
+    .warn-note {
+      margin-top: 0;
+      padding: 14px 28px;
+      background: #fff3cd;
+      border-top: 1px solid #f0d080;
+      border-bottom: 3px solid #FFCC00;
+      font-size: 14px;
+      font-weight: 600;
+      color: #5a4400;
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+
+    .info-note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #f0f4ff;
+      border-left: 4px solid #5b8dee;
+      font-size: 13px;
+      color: #2c4da0;
+      border-radius: 0 3px 3px 0;
+      line-height: 1.5;
+    }
+
+    .success-note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      font-size: 13px;
+      color: #1a5c2a;
+      border-radius: 0 3px 3px 0;
+      line-height: 1.5;
+    }
+
+    /* ---------- upload box path ---------- */
+    .box-path {
+      display: block;
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: #444;
+      word-break: break-all;
+    }
+
+    /* ---------- collapsible background section ---------- */
+    .bg-details {
+      border: 1px solid #ddd;
+      border-top: none;
+      background: #f9f9f9;
+      border-radius: 0 0 3px 3px;
+    }
+    .bg-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 28px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      list-style: none;
+      border-radius: 0 0 3px 3px;
+    }
+    .bg-summary::-webkit-details-marker { display: none; }
+    .bg-summary:hover { background: #efefef; }
+    .bg-chevron {
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+    details[open].bg-details .bg-chevron { transform: rotate(180deg); }
+    details[open].bg-details .bg-summary { border-radius: 0; }
+    .bg-content {
+      padding: 20px 28px 24px;
+      border-top: 1px solid #ddd;
+    }
+    .bg-content h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #990000;
+    }
+    .bg-content ul {
+      margin: 0;
+      padding-left: 20px;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .bg-content ul ul {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #555;
+    }
+    .bg-content .bg-step-group {
+      margin-bottom: 14px;
+    }
+
+    /* ---------- footer ---------- */
+    .page-footer {
+      margin-top: 18px;
+      font-size: 11px;
+      color: #888;
+      text-align: center;
+      border-top: 1px solid #ccc;
+      padding-top: 12px;
+    }
+
+    /* ---------- back link ---------- */
+    .back-link {
+      display: inline-block;
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: #990000;
+      text-decoration: none;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    /* ---------- time-phrase highlight ---------- */
+    .time-phrase {
+      font-weight: 600;
+      color: #990000;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <a class="back-link" href="control-panel.html">&#8592; Back to Control Panel</a>
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="site-header">
+    <h1>Quorum Weekly Download Guide</h1>
+    <p>USC Schaeffer Center for Health Policy &amp; Economics &nbsp;·&nbsp; Step-by-step Quorum export instructions</p>
+  </header>
+
+  <!-- ===================== TIMEFRAME SELECTOR ===================== -->
+  <div class="timeframe-card">
+    <label for="timeframe-select">Reporting period:</label>
+    <select class="timeframe-select" id="timeframe-select" onchange="updateTimeframe()">
+      <option value="month" selected>Last Month</option>
+      <option value="3months">Last 3 Months</option>
+      <option value="12months">Last 12 Months</option>
+    </select>
+    <span class="timeframe-note">Instructions below update to match the selected period.</span>
+  </div>
+
+  <!-- ===================== INTRO ===================== -->
+  <section class="card">
+    <h2 class="card-heading">You need 6 files from Quorum</h2>
+    <p class="card-sub">
+      Follow sections A through E below to download each file, then upload all 6 to Box.
+      Use the timeframe selector above to adjust the filter dates across all steps at once.
+    </p>
+  </section>
+
+  <!-- ===================== SECTION A ===================== -->
+  <section class="card">
+    <h2 class="card-heading">
+      <span class="section-badge">A</span>
+      Outbox Emails — Opened <span class="time-phrase" id="a-heading-time">in the last month</span>
+    </h2>
+    <ol class="step-list">
+      <li>
+        <span class="step-num">1</span>
+        <div class="step-body">
+          Navigate to <span class="step-path">Quorum → Search → Outbox</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <div class="step-body">
+          Apply filters:
+          <div class="step-filter">
+            <ul>
+              <li>Status: check <strong>"Opened"</strong></li>
+              <li>Date: <span class="time-phrase time-filter">In the last month</span></li>
+            </ul>
+          </div>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <div class="step-body">
+          Click <strong>Download → Spreadsheet</strong>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ===================== SECTION B ===================== -->
+  <section class="card">
+    <h2 class="card-heading">
+      <span class="section-badge">B</span>
+      Notes
+    </h2>
+    <ol class="step-list">
+      <li>
+        <span class="step-num">4</span>
+        <div class="step-body">
+          Navigate to <span class="step-path">Quorum → Notes</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">5</span>
+        <div class="step-body">
+          Apply filter:
+          <div class="step-filter">
+            Note Start Date: <span class="time-phrase time-filter">In the last month</span>
+          </div>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">6</span>
+        <div class="step-body">
+          Click <strong>Download → Spreadsheet</strong>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ===================== SECTION C ===================== -->
+  <section class="card">
+    <h2 class="card-heading">
+      <span class="section-badge">C</span>
+      Outbox Envelopes — Issue &amp; Other Info
+    </h2>
+    <ol class="step-list">
+      <li>
+        <span class="step-num">7</span>
+        <div class="step-body">
+          Navigate to <span class="step-path">Quorum → Outbox</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">8</span>
+        <div class="step-body">
+          Click <strong>Download → "Per Email Report"</strong>
+        </div>
+      </li>
+    </ol>
+    <div class="info-note">
+      No date filter needed here — this downloads the envelope/issue metadata for all outbox records.
+    </div>
+  </section>
+
+  <!-- ===================== SECTION D-E ===================== -->
+  <section class="card">
+    <h2 class="card-heading">
+      <span class="section-badge" style="font-size:11px;width:32px;height:28px;border-radius:3px;">D–E</span>
+      Contacts, Staff &amp; Officials
+    </h2>
+    <ol class="step-list">
+      <li>
+        <span class="step-num">9</span>
+        <div class="step-body">
+          Navigate to <span class="step-path">Quorum → Issue Management</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">10</span>
+        <div class="step-body">
+          Go to <span class="step-path">Metrics Tracking → Lists</span>
+        </div>
+      </li>
+    </ol>
+
+    <div class="sub-section">
+      <div class="sub-section-heading">
+        <span class="sub-badge">D</span>
+        Contacts
+      </div>
+      Download Spreadsheet for the list: <strong>"<span class="time-phrase list-name-contacts">Last month</span> contacts"</strong>
+    </div>
+
+    <div class="sub-section">
+      <div class="sub-section-heading">
+        <span class="sub-badge">E</span>
+        Staff
+      </div>
+      Download Spreadsheet for the list: <strong>"<span class="time-phrase list-name-staff">Last month</span> staffers"</strong>
+    </div>
+
+    <div class="sub-section">
+      <div class="sub-section-heading">
+        <span class="sub-badge">E</span>
+        Officials
+      </div>
+      Download Spreadsheet for the list: <strong>"<span class="time-phrase list-name-officials">Last month</span> officials"</strong>
+    </div>
+  </section>
+
+  <!-- ===================== UPLOAD ===================== -->
+  <section class="card">
+    <h2 class="card-heading">Upload All 6 Files to Box</h2>
+    <p style="margin:0 0 8px;">Move or upload all 6 downloaded files to:</p>
+    <code class="box-path">Box \ Schaeffer EA \ Public Policy \ Quorum Metrics \ Quorum Downloads (Weekly)</code>
+    <div class="success-note" style="margin-top:14px;">
+      Also confirm that <strong>Committees.csv</strong> is already present in that folder before running the system.
+    </div>
+  </section>
+
+  <!-- ===================== WAIT WARNING ===================== -->
+  <div class="warn-note">
+    WAIT 15 MINUTES FOR BOX TO REFRESH BEFORE RUNNING THE METRICS SYSTEM
+  </div>
+
+  <!-- ===================== RUN SYSTEM ===================== -->
+  <section class="card" style="border-radius: 0;">
+    <h2 class="card-heading">Run the System</h2>
+    <p class="card-sub" style="margin-bottom:0;">
+      Once Box has had 15–20 minutes to register the files, go to the
+      <a href="control-panel.html" style="color:#990000;font-weight:600;">Control Panel</a>
+      and use <strong>Step 1 (Check File Status)</strong> to confirm the files are visible,
+      then trigger the system with <strong>Step 2 (Run System)</strong>.
+    </p>
+  </section>
+
+  <!-- ===================== BACKGROUND: HOW LISTS ARE BUILT ===================== -->
+  <details class="bg-details">
+    <summary class="bg-summary">
+      <span>Background: How the Contacts, Staff &amp; Officials Lists are built</span>
+      <span class="bg-chevron">&#9660;</span>
+    </summary>
+    <div class="bg-content">
+      <p style="margin:0 0 14px;font-size:13px;color:#666;">
+        The lists you download in sections D–E are built in Quorum before each reporting run.
+        Here's the process for building each list type (Staffers, Contacts, or Officials):
+      </p>
+
+      <div class="bg-step-group">
+        <h3>Step 1 — Find everyone who participated in Notes</h3>
+        <ul>
+          <li>Go to <strong>Quorum Search → Staffers / Contacts / Officials</strong></li>
+          <li>Apply filter:
+            <ul>
+              <li>Interactions → <em>Participated in notes…</em></li>
+              <li>Note Start Date: <span class="time-phrase time-filter">In the last month</span></li>
+              <li>Click <strong>Apply All</strong></li>
+            </ul>
+          </li>
+          <li>Save this as <strong>List A</strong> in Metrics Tracking Issue</li>
+          <li>Clear the filter</li>
+        </ul>
+      </div>
+
+      <div class="bg-step-group">
+        <h3>Step 2 — Find everyone whose office participated in Notes</h3>
+        <ul>
+          <li>Apply filter:
+            <ul>
+              <li>Interactions → <em>Office participated in notes…</em></li>
+              <li>Note Start Date: <span class="time-phrase time-filter">In the last month</span></li>
+              <li>Click <strong>Apply All</strong></li>
+            </ul>
+          </li>
+          <li>Save this as <strong>List B</strong> in Metrics Tracking Issue</li>
+          <li>Clear the filter</li>
+        </ul>
+      </div>
+
+      <div class="bg-step-group">
+        <h3>Step 3 — Find everyone who opened an Outbox email</h3>
+        <ul>
+          <li>Apply filter:
+            <ul>
+              <li>Outbox Emails → <em>Opened Email…</em></li>
+              <li>Date: <span class="time-phrase time-filter">In the last month</span></li>
+              <li>Click <strong>Apply All</strong></li>
+            </ul>
+          </li>
+          <li>Save this as <strong>List C</strong></li>
+          <li>Clear the filter</li>
+        </ul>
+      </div>
+
+      <div class="bg-step-group">
+        <h3>Step 4 — Combine into one final list</h3>
+        <ul>
+          <li>Apply filter: Lists = <strong>List A + List B + List C</strong></li>
+          <li>Save as the combined list (e.g., <em>"<span class="time-phrase list-name-contacts">Last month</span> staffers"</em>)</li>
+        </ul>
+      </div>
+
+      <p style="margin:14px 0 0;font-size:13px;color:#888;">
+        Repeat this process separately for Staffers, Contacts, and Officials.
+      </p>
+    </div>
+  </details>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="page-footer">
+    USC Schaeffer Center for Health Policy &amp; Economics &nbsp;·&nbsp; For internal staff use only
+  </footer>
+
+</div><!-- /.page-wrap -->
+
+<script>
+  /*
+   * Timeframe selector — updates all .time-phrase spans when the dropdown changes.
+   *
+   * Why: The same date filter phrase ("in the last month") appears in multiple
+   * steps. Rather than duplicate the logic, all spans carry a class indicating
+   * what type of text they hold, and this function rewrites them in one pass.
+   *
+   * Span classes:
+   *   .time-filter      — the Quorum filter wording ("In the last month")
+   *   .list-name-*      — the list name prefix ("Last month")
+   *   #a-heading-time   — section A heading phrase ("in the last month")
+   */
+  var TIMEFRAME_DATA = {
+    month: {
+      filterPhrase:  'In the last month',
+      headingPhrase: 'in the last month',
+      listPrefix:    'Last month'
+    },
+    '3months': {
+      filterPhrase:  'In the last 3 months',
+      headingPhrase: 'in the last 3 months',
+      listPrefix:    'Last 3 months'
+    },
+    '12months': {
+      filterPhrase:  'In the last 12 months',
+      headingPhrase: 'in the last 12 months',
+      listPrefix:    'Last 12 months'
+    }
+  };
+
+  function updateTimeframe() {
+    var sel = document.getElementById('timeframe-select');
+    var data = TIMEFRAME_DATA[sel.value] || TIMEFRAME_DATA['month'];
+
+    /* Filter phrases throughout the steps and background section */
+    document.querySelectorAll('.time-filter').forEach(function(el) {
+      el.textContent = data.filterPhrase;
+    });
+
+    /* Section A heading */
+    var headingEl = document.getElementById('a-heading-time');
+    if (headingEl) headingEl.textContent = data.headingPhrase;
+
+    /* List name prefixes */
+    document.querySelectorAll('.list-name-contacts').forEach(function(el) {
+      el.textContent = data.listPrefix;
+    });
+    document.querySelectorAll('.list-name-staff').forEach(function(el) {
+      el.textContent = data.listPrefix;
+    });
+    document.querySelectorAll('.list-name-officials').forEach(function(el) {
+      el.textContent = data.listPrefix;
+    });
+  }
+</script>
+
+</body>
+</html>
