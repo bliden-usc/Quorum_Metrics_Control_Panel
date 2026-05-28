@@ -1370,10 +1370,11 @@
         if (isTest) {
           const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
           recipientsEl.innerHTML =
-            '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
-            '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr + '<br>' +
-            'Prod Leadership: ' + lr + '<br>' +
-            'Prod Dashboard: ' + dr + '</span>';
+            '<em style="color:#b45309;">Dev Mode Recipients: Emails go to Administrator only</em><br>' +
+            '<span style="color:#888;font-size:0.9em;">Routing to: <strong style="color:#888;">' + adminEmail + '</strong></span><br>' +
+            '<span style="color:#bbb;font-size:0.9em;text-decoration:line-through;">Deficiency: ' + rr + '<br>' +
+            'Leadership: ' + lr + '<br>' +
+            'Dashboard: ' + dr + '</span>';
         } else {
           recipientsEl.innerHTML =
             'Deficiency: <strong>' + rr + '</strong><br>' +
@@ -1660,10 +1661,11 @@
         if (isDevMode) {
           const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
           recipientsEl.innerHTML =
-            '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
-            '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr2 + '<br>' +
-            'Prod Leadership: ' + lr2 + '<br>' +
-            'Prod Dashboard: ' + dr2 + '</span>';
+            '<em style="color:#b45309;">Dev Mode Recipients: Emails go to Administrator only</em><br>' +
+            '<span style="color:#888;font-size:0.9em;">Routing to: <strong style="color:#888;">' + adminEmail + '</strong></span><br>' +
+            '<span style="color:#bbb;font-size:0.9em;text-decoration:line-through;">Deficiency: ' + rr2 + '<br>' +
+            'Leadership: ' + lr2 + '<br>' +
+            'Dashboard: ' + dr2 + '</span>';
         } else {
           recipientsEl.innerHTML =
             'Deficiency: <strong>' + rr2 + '</strong><br>' +
