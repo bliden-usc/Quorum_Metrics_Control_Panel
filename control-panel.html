@@ -1708,13 +1708,33 @@
         throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
       }
 
-      /* Refresh UI from live config before showing success so it reflects actual state */
-      await loadDevModeState();
+      /* Update UI directly from newVal — do NOT read back from the server here.
+       * The Config Manager writes to Box, which takes a few seconds to propagate.
+       * Calling loadDevModeState() immediately after the POST returns the old value
+       * from Box (not yet updated), making it appear the toggle didn't take. */
+      const lbl = document.getElementById('devmode-label');
+      if (lbl) lbl.textContent = newVal ? 'DEV MODE: ON' : 'DEV MODE: OFF';
+
+      const banner = document.getElementById('dev-mode-banner');
+      if (banner) banner.style.display = newVal ? 'block' : 'none';
+
+      const modeBadge = document.getElementById('status-mode-badge');
+      if (newVal) {
+        setBanner('mode-dev',
+          '<strong>DEV MODE</strong> — <span>Emails go to Administrator only. System trigger is still active.</span>');
+        if (modeBadge) { modeBadge.textContent = 'DEV MODE'; modeBadge.className = 'badge badge-yellow'; }
+      } else {
+        loadSystemMode();
+        if (modeBadge) { modeBadge.textContent = 'PRODUCTION'; modeBadge.className = 'badge badge-green'; }
+      }
+
       showResult('devmode-result', 'success',
         '&#10003; Dev mode ' + (newVal ? 'enabled.' : 'disabled.'));
 
     } catch (err) {
       clearTimeout(timeoutId);
+      /* Revert the checkbox since the save failed */
+      if (cb) cb.checked = !newVal;
       const isTimeout = err.name === 'AbortError';
       const isCors = !isTimeout && (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
       const msg = isTimeout
