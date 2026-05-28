@@ -1178,7 +1178,7 @@
       polls++;
 
       try {
-        const resp = await fetch(WEBHOOK_CONFIG_GET, {
+        const resp = await fetch(WEBHOOK_CONFIG_GET + '?t=' + Date.now(), {
           method: 'GET',
           headers: { 'Accept': 'application/json' }
         });
@@ -1287,7 +1287,8 @@
     statusEl.className = '';
 
     try {
-      const resp = await fetch(WEBHOOK_CONFIG_GET, {
+      /* Cache-bust so we always get the live config, not a browser-cached copy. */
+      const resp = await fetch(WEBHOOK_CONFIG_GET + '?t=' + Date.now(), {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
       });
@@ -1533,7 +1534,11 @@
     const lbl = document.getElementById(labelId);
     if (!cb || !lbl) return;
     cb.addEventListener('change', function() {
-      lbl.textContent = cb.checked ? 'ON' : 'OFF';
+      /* Show pending intent while the user decides before clicking Apply.
+       * toggleDevMode() overwrites this with the full 'DEV MODE: ON/OFF' text
+       * after the save confirms. Using the full text here avoids a momentary
+       * flash of just "ON"/"OFF" that confused the label state with the saved state. */
+      lbl.textContent = cb.checked ? 'DEV MODE: ON' : 'DEV MODE: OFF';
     });
   }
 
@@ -1598,7 +1603,10 @@
    */
   async function loadDevModeState() {
     try {
-      const resp = await fetch(WEBHOOK_CONFIG_GET, {
+      /* Cache-bust: append timestamp so the browser never serves a cached GET
+       * response. Without this, a stale TEST_MODE: "true" from before a toggle
+       * save can snap the UI back to DEV MODE immediately after a successful save. */
+      const resp = await fetch(WEBHOOK_CONFIG_GET + '?t=' + Date.now(), {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
       });
@@ -1709,10 +1717,12 @@
       }
 
       /* Update UI directly from newVal — do NOT read back from the server here.
-       * The Config Manager writes to Box, which takes a few seconds to propagate.
-       * Calling loadDevModeState() immediately after the POST returns the old value
-       * from Box (not yet updated), making it appear the toggle didn't take. */
+       * loadDevModeState() is async and may complete after this function with a
+       * stale cached GET response, snapping the UI back to the old state.
+       * Explicitly set cb.checked so the visual toggle matches the saved state
+       * even if the change event had already fired with the pending value. */
       const lbl = document.getElementById('devmode-label');
+      if (cb) cb.checked = newVal;
       if (lbl) lbl.textContent = newVal ? 'DEV MODE: ON' : 'DEV MODE: OFF';
 
       const banner = document.getElementById('dev-mode-banner');
