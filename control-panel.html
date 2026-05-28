@@ -1370,10 +1370,11 @@
         if (isTest) {
           const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
           recipientsEl.innerHTML =
-            '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
-            '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr + '<br>' +
-            'Prod Leadership: ' + lr + '<br>' +
-            'Prod Dashboard: ' + dr + '</span>';
+            '<em style="color:#b45309;">Dev Mode Recipients: Emails go to Administrator only</em><br>' +
+            '<span style="color:#888;font-size:0.9em;">Routing to: <strong style="color:#888;">' + adminEmail + '</strong></span><br>' +
+            '<span style="color:#bbb;font-size:0.9em;text-decoration:line-through;">Deficiency: ' + rr + '<br>' +
+            'Leadership: ' + lr + '<br>' +
+            'Dashboard: ' + dr + '</span>';
         } else {
           recipientsEl.innerHTML =
             'Deficiency: <strong>' + rr + '</strong><br>' +
@@ -1743,10 +1744,11 @@
       showResult('devmode-result', newVal ? 'warn' : 'success',
         '&#10003; Dev mode ' + (newVal ? 'enabled.' : 'disabled.'));
 
-      /* Refresh the Email Recipients box so it immediately reflects the new mode.
-       * loadConfig() is called here (not loadDevModeState) because it updates the
-       * recipients display without touching the toggle state we just locked above. */
-      loadConfig();
+      /* Refresh recipients box and confirm server state via loadDevModeState().
+       * cb.checked is already locked to newVal above, so even if the server is
+       * briefly stale the toggle visual won't flip. loadDevModeState has cache-busting
+       * and updates the recipients box with the correct mode-aware format. */
+      loadDevModeState();
 
     } catch (err) {
       clearTimeout(timeoutId);
