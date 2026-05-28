@@ -1738,7 +1738,9 @@
         if (modeBadge) { modeBadge.textContent = 'PRODUCTION'; modeBadge.className = 'badge badge-green'; }
       }
 
-      showResult('devmode-result', 'success',
+      /* Use 'warn' (yellow) for dev ON, 'success' (green) for production —
+       * matches the color of the top banner for the active mode. */
+      showResult('devmode-result', newVal ? 'warn' : 'success',
         '&#10003; Dev mode ' + (newVal ? 'enabled.' : 'disabled.'));
 
     } catch (err) {
