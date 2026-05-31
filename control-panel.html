@@ -915,6 +915,35 @@
    */
   let REQUIRED_FILE_COUNT = 6;
 
+  /* Last config fetched from Config Manager — used by renderRecipientsBox() so
+   * toggleDevMode() can update the recipients box without an extra GET that
+   * would race against the Box upload that hasn't finished yet. */
+  let _lastConfig = {};
+
+  /* ---- Helper: render the Email Recipients summary box ---- */
+  /* Extracted from loadDevModeState() so toggleDevMode() can call it inline
+   * using cached config, avoiding the stale-GET race condition. */
+  function renderRecipientsBox(isDevMode, cfg) {
+    const recipientsEl = document.getElementById('status-recipients');
+    if (!recipientsEl) return;
+    const rr2 = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+    const lr2 = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+    const dr2 = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+    if (isDevMode) {
+      const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
+      recipientsEl.innerHTML =
+        '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
+        '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr2 + '<br>' +
+        'Prod Leadership: ' + lr2 + '<br>' +
+        'Prod Dashboard: ' + dr2 + '</span>';
+    } else {
+      recipientsEl.innerHTML =
+        'Deficiency: <strong>' + rr2 + '</strong><br>' +
+        'Leadership: <strong>' + lr2 + '</strong><br>' +
+        'Dashboard: <strong>' + dr2 + '</strong>';
+    }
+  }
+
   /* ---- Helper: show a result box ---- */
   function showResult(boxId, state, html) {
     const el = document.getElementById(boxId);
@@ -1305,6 +1334,7 @@
         const text = await resp.text();
         try { cfg = JSON.parse(text); } catch (_) { cfg = {}; }
       }
+      _lastConfig = cfg;
 
       /* --- Populate fields --- */
 
@@ -1625,6 +1655,7 @@
         const text = await resp.text();
         try { cfg = JSON.parse(text); } catch (_) { cfg = {}; }
       }
+      _lastConfig = cfg;
 
       /* Normalize: TEST_MODE may arrive as boolean or string 'true'/'false' */
       const isDevMode = cfg.TEST_MODE === true || cfg.TEST_MODE === 'true';
@@ -1652,26 +1683,8 @@
         if (modeBadge) { modeBadge.textContent = 'PRODUCTION'; modeBadge.className = 'badge badge-green'; }
       }
 
-      /* Refresh Email Recipients summary — same cfg already fetched, no extra network call */
-      const recipientsEl = document.getElementById('status-recipients');
-      if (recipientsEl) {
-        const rr2 = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
-        const lr2 = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
-        const dr2 = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
-        if (isDevMode) {
-          const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
-          recipientsEl.innerHTML =
-            '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
-            '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr2 + '<br>' +
-            'Prod Leadership: ' + lr2 + '<br>' +
-            'Prod Dashboard: ' + dr2 + '</span>';
-        } else {
-          recipientsEl.innerHTML =
-            'Deficiency: <strong>' + rr2 + '</strong><br>' +
-            'Leadership: <strong>' + lr2 + '</strong><br>' +
-            'Dashboard: <strong>' + dr2 + '</strong>';
-        }
-      }
+      /* Refresh Email Recipients summary using shared helper */
+      renderRecipientsBox(isDevMode, cfg);
 
     } catch (err) {
       const lbl = document.getElementById('devmode-label');
@@ -1744,11 +1757,12 @@
       showResult('devmode-result', newVal ? 'warn' : 'success',
         '&#10003; Dev mode ' + (newVal ? 'enabled.' : 'disabled.'));
 
-      /* Refresh recipients box and confirm server state via loadDevModeState().
-       * cb.checked is already locked to newVal above, so even if the server is
-       * briefly stale the toggle visual won't flip. loadDevModeState has cache-busting
-       * and updates the recipients box with the correct mode-aware format. */
-      loadDevModeState();
+      /* Update recipients box immediately from cached config — avoids the race
+       * where a GET to the Config Manager returns stale TEST_MODE before the
+       * Box upload triggered by this POST has finished writing. The full
+       * _lastConfig was set by the most recent loadConfig() / loadDevModeState()
+       * call, so all recipient lists are current. */
+      renderRecipientsBox(newVal, _lastConfig);
 
     } catch (err) {
       clearTimeout(timeoutId);
