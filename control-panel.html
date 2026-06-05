@@ -819,6 +819,16 @@
           </div>
         </div>
 
+        <div class="config-group">
+          <div class="config-group-heading">Team</div>
+
+          <div class="config-field">
+            <label for="config-schaeffer-staff">Schaeffer Staff Names</label>
+            <input type="text" id="config-schaeffer-staff" autocomplete="off" placeholder="Barry Liden,Stephanie Hedt,Jennifer Laux" style="width:100%;font-family:monospace;font-size:13px;padding:6px 8px;border:1px solid #ccc;border-radius:4px;">
+            <div style="font-size:11px;color:#666;margin-top:4px;">Comma-separated full names. Always classified as Schaeffer type. Update when team changes — no code change needed.</div>
+          </div>
+        </div>
+
         <div style="margin-top:6px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
           <button class="btn btn-primary" id="config-save-btn" onclick="saveConfig()">
             Save Configuration
@@ -1383,6 +1393,7 @@
 
       setVal('config-required-file-count',    cfg.REQUIRED_FILE_COUNT    != null ? String(cfg.REQUIRED_FILE_COUNT)    : '');
       setVal('config-open-window-days',       cfg.OPEN_WINDOW_DAYS       != null ? String(cfg.OPEN_WINDOW_DAYS)       : '');
+      setVal('config-schaeffer-staff',        cfg.SCHAEFFER_STAFF        != null ? String(cfg.SCHAEFFER_STAFF)        : '');
 
       /* Dynamically update the pre-flight threshold so it uses the live value */
       if (cfg.REQUIRED_FILE_COUNT != null) {
@@ -1478,7 +1489,8 @@
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
         REQUIRED_FILE_COUNT:          toNumOrNull('config-required-file-count'),
-        OPEN_WINDOW_DAYS:             toNumOrNull('config-open-window-days')
+        OPEN_WINDOW_DAYS:             toNumOrNull('config-open-window-days'),
+        SCHAEFFER_STAFF:              getVal('config-schaeffer-staff') || null
       };
 
       const resp = await fetch(WEBHOOK_CONFIG_SET, {
