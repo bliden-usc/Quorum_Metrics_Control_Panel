@@ -1024,6 +1024,12 @@
         typeof data.count      === 'number' ? data.count      :
         null;
 
+
+      /* Show which Box folder was actually checked — confirms test vs production routing. */
+      const modeNote = data.folderId
+        ? ' <span style="font-size:11px;color:#888;">[' + (data.testMode ? 'test' : 'production') + ' folder ' + data.folderId + ']</span>'
+        : '';
+
       /* Determine ready status */
       let ready;
       if (typeof data.ready === 'boolean') {
@@ -1041,7 +1047,7 @@
           : 'files confirmed';
 
         showResult('preflight-result', 'success',
-          '&#10003; <strong>Ready</strong> — ' + countPhrase + '. You may proceed to Step 2.');
+          '&#10003; <strong>Ready</strong> — ' + countPhrase + '. You may proceed to Step 2.' + modeNote);
 
         preflightPassed = true;
         const runBtn = document.getElementById('btn-run');
@@ -1055,7 +1061,7 @@
 
         showResult('preflight-result', 'warn',
           '&#9888; <strong>Not ready</strong> — ' + countPhrase +
-          '. Box may still be registering the export. Please wait a few minutes and check again.');
+          '. Box may still be registering the export. Please wait a few minutes and check again.' + modeNote);
       }
 
     } catch (err) {
@@ -1581,7 +1587,7 @@
        * toggleDevMode() overwrites this with the full 'DEV MODE: ON/OFF' text
        * after the save confirms. Using the full text here avoids a momentary
        * flash of just "ON"/"OFF" that confused the label state with the saved state. */
-      lbl.textContent = cb.checked ? 'DEV MODE: ON' : 'DEV MODE: OFF';
+      lbl.textContent = cb.checked ? 'DEV MODE: ON (unsaved)' : 'DEV MODE: OFF (unsaved)';
     });
   }
 
