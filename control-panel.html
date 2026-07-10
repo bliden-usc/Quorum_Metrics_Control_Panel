@@ -2016,5 +2016,114 @@
   });
 </script>
 
+
+  <!-- MONTHLY REPORT SECTION -->
+  <div class="panel" id="monthly-report-panel" style="margin-top:24px;">
+    <div class="panel-header">
+      <h2>Monthly Report Draft</h2>
+      <p class="panel-desc">Creates a Gmail draft of the monthly engagement report. You edit the narrative in Gmail, then send manually. The weekly dashboard email is suppressed on these runs.</p>
+    </div>
+    <div class="panel-body">
+      <div class="field-row">
+        <label for="reportMonth">Report Month</label>
+        <input type="month" id="reportMonth" class="month-input" />
+        <span class="field-hint">Defaults to previous calendar month</span>
+      </div>
+      <div class="action-row" style="margin-top:16px;">
+        <button id="generateDraftBtn" class="btn btn-primary" onclick="generateMonthlyDraft()">
+          Generate Monthly Draft
+        </button>
+      </div>
+      <div id="monthlyStatus" class="status-box" style="display:none;margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <style>
+    .month-input {
+      font-size: 14px;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+    .field-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .field-row label {
+      font-weight: 600;
+      font-size: 14px;
+      min-width: 110px;
+    }
+    .field-hint {
+      font-size: 12px;
+      color: #767676;
+      font-style: italic;
+    }
+    #monthlyStatus.running  { background: #fff8e1; border-left: 4px solid #f9a825; padding: 10px 14px; border-radius: 4px; }
+    #monthlyStatus.success  { background: #e8f5e9; border-left: 4px solid #43a047; padding: 10px 14px; border-radius: 4px; }
+    #monthlyStatus.error    { background: #ffebee; border-left: 4px solid #e53935; padding: 10px 14px; border-radius: 4px; }
+  </style>
+
+  <script>
+  (function () {
+    // Set default month picker to previous calendar month
+    const now = new Date();
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const defaultMonth = prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0');
+    const picker = document.getElementById('reportMonth');
+    if (picker && !picker.value) picker.value = defaultMonth;
+  })();
+
+  async function generateMonthlyDraft() {
+    const picker = document.getElementById('reportMonth');
+    const monthVal = picker ? picker.value : '';
+    const statusEl = document.getElementById('monthlyStatus');
+    const btn = document.getElementById('generateDraftBtn');
+
+    if (!monthVal) {
+      showMonthlyStatus('error', 'Please select a month before generating the draft.');
+      return;
+    }
+
+    const WEBHOOK_URL = 'https://uscschaeffercenterclips.app.n8n.cloud/webhook/schaeffer-run';
+    const params = new URLSearchParams({
+      SEND_MONTHLY_DRAFT: 'true',
+      MONTHLY_ONLY:       'true',
+      REPORT_MONTH:       monthVal,
+    });
+
+    showMonthlyStatus('running', 'Pipeline running… this takes about 60–90 seconds.');
+    if (btn) btn.disabled = true;
+
+    try {
+      const resp = await fetch(WEBHOOK_URL + '?' + params.toString());
+      if (resp.ok) {
+        showMonthlyStatus('success',
+          'Done. A Gmail draft for <strong>' + monthVal + '</strong> was saved. '
+          + 'Open <a href="https://mail.google.com/mail/u/0/#drafts" target="_blank">Gmail Drafts</a> '
+          + 'in the USCSchaefferMetrics account to review and send. '
+          + 'A notification email was also sent to the admin.');
+      } else {
+        showMonthlyStatus('error', 'Pipeline returned HTTP ' + resp.status + '. Check n8n for details.');
+      }
+    } catch (err) {
+      showMonthlyStatus('error', 'Network error: ' + err.message);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function showMonthlyStatus(type, html) {
+    const el = document.getElementById('monthlyStatus');
+    if (!el) return;
+    el.style.display = 'block';
+    el.className = 'status-box ' + type;
+    el.innerHTML = html;
+  }
+  </script>
+
 </body>
 </html>
