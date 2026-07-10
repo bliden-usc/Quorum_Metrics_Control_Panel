@@ -715,77 +715,34 @@
     </div>
 
 
-      <!-- MONTHLY REPORT INLINE -->
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e0e0e0;">
-        <div style="font-size:14px;font-weight:500;color:#333;margin-bottom:8px;">Monthly Report Draft</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
-          <label style="font-size:13px;color:#555;white-space:nowrap;">Report Month:</label>
-          <input type="month" id="reportMonth" style="font-size:13px;padding:4px 8px;border:1px solid #ccc;border-radius:3px;" />
-          <button class="btn btn-gold" id="generateDraftBtn" style="font-size:13px;padding:5px 14px;" onclick="generateMonthlyDraft()">Generate Monthly Draft</button>
+            <!-- MONTHLY REPORT INLINE -->
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e0e0e0;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#333;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="opt-monthly-draft" style="width:15px;height:15px;accent-color:#990000;" onchange="onMonthlyDraftToggle()">
+          Monthly Report Draft
+        </label>
+        <div id="monthly-draft-options" style="display:none;margin-top:8px;margin-left:23px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <label style="font-size:13px;color:#555;white-space:nowrap;">Report Month:</label>
+            <input type="month" id="reportMonth" style="font-size:13px;padding:4px 8px;border:1px solid #ccc;border-radius:3px;">
+          </div>
+          <p style="margin:5px 0 0;font-size:12px;color:#888;">Creates a Gmail draft of the monthly report. Weekly email is suppressed on these runs. Open Gmail Drafts in the USCSchaefferMetrics account to review and send manually.</p>
         </div>
-        <p style="margin:4px 0 6px;font-size:12px;color:#888;">Creates a Gmail draft. Weekly email is suppressed on these runs. Open Gmail Drafts in the USCSchaefferMetrics account to review and send manually.</p>
-        <div id="monthlyStatus" style="display:none;font-size:13px;padding:8px 12px;border-radius:3px;margin-top:6px;"></div>
       </div>
 
-      <style>
-        #monthlyStatus.running { background:#fff8e1;border-left:3px solid #f9a825; }
-        #monthlyStatus.success { background:#e8f5e9;border-left:3px solid #43a047; }
-        #monthlyStatus.error   { background:#ffebee;border-left:3px solid #e53935; }
-      </style>
-
       <script>
-      (function () {
-        // Default month picker to previous calendar month
-        const now  = new Date();
-        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const val  = prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0');
-        const el   = document.getElementById('reportMonth');
-        if (el && !el.value) el.value = val;
-      })();
-
-      function generateMonthlyDraft() {
-        const picker   = document.getElementById('reportMonth');
-        const monthVal = picker ? picker.value : '';
-        const statusEl = document.getElementById('monthlyStatus');
-        const btn      = document.getElementById('generateDraftBtn');
-
-        if (!monthVal) {
-          showMonthlyStatus('error', 'Please select a month first.');
-          return;
+      function onMonthlyDraftToggle() {
+        const checked = !!(document.getElementById('opt-monthly-draft') || {}).checked;
+        const opts    = document.getElementById('monthly-draft-options');
+        if (opts) opts.style.display = checked ? 'block' : 'none';
+        if (checked) {
+          // Default month picker to previous calendar month
+          const picker = document.getElementById('reportMonth');
+          if (picker && !picker.value) {
+            const prev = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+            picker.value = prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0');
+          }
         }
-
-        const WEBHOOK = 'https://uscschaeffercenterclips.app.n8n.cloud/webhook/schaeffer-run';
-        const params  = new URLSearchParams({
-          SEND_MONTHLY_DRAFT: 'true',
-          MONTHLY_ONLY:       'true',
-          REPORT_MONTH:       monthVal,
-        });
-
-        showMonthlyStatus('running', 'Pipeline running… takes about 60–90 seconds.');
-        if (btn) btn.disabled = true;
-
-        fetch(WEBHOOK + '?' + params.toString())
-          .then(r => {
-            if (r.ok) {
-              showMonthlyStatus('success',
-                'Done. Draft saved for <strong>' + monthVal + '</strong>. '
-                + 'Open <a href="https://mail.google.com/mail/u/0/#drafts" target="_blank">Gmail Drafts</a> '
-                + 'in the USCSchaefferMetrics account to review and send. '
-                + 'A notification email was also sent to the admin.');
-            } else {
-              showMonthlyStatus('error', 'Pipeline returned HTTP ' + r.status + '. Check n8n for details.');
-            }
-          })
-          .catch(err => showMonthlyStatus('error', 'Network error: ' + err.message))
-          .finally(() => { if (btn) btn.disabled = false; });
-      }
-
-      function showMonthlyStatus(type, html) {
-        const el = document.getElementById('monthlyStatus');
-        if (!el) return;
-        el.style.display = 'block';
-        el.className     = type;
-        el.innerHTML     = html;
       }
       </script>
 
@@ -1197,6 +1154,14 @@
     const sendWU = !!(document.getElementById('opt-weekly-update') || {}).checked;
     params.set('SEND_WEEKLY_DEFICIENCY', sendWD ? 'true' : 'false');
     params.set('SEND_WEEKLY_UPDATE', sendWU ? 'true' : 'false');
+    /* Monthly Report Draft */
+    const sendMD = !!(document.getElementById('opt-monthly-draft') || {}).checked;
+    params.set('SEND_MONTHLY_DRAFT', sendMD ? 'true' : 'false');
+    if (sendMD) {
+      params.set('MONTHLY_ONLY', 'true');
+      const reportMonth = (document.getElementById('reportMonth') || {}).value || '';
+      if (reportMonth) params.set('REPORT_MONTH', reportMonth);
+    }
 
     return params.toString();
   }
@@ -1215,6 +1180,11 @@
     if (sendLR) reportLines.push('  • Leadership Report (' + getLeadershipPeriod() + ')');
     if (sendWD) reportLines.push('  • Weekly Quorum Deficiency');
     if (sendWU) reportLines.push('  • Weekly Update');
+    const sendMD2 = !!(document.getElementById('opt-monthly-draft') || {}).checked;
+    if (sendMD2) {
+      const month = (document.getElementById('reportMonth') || {}).value || '(no month selected)';
+      reportLines.push('  • Monthly Report Draft (' + month + ')');
+    }
     const reportsNote = reportLines.length
       ? '\n\nReports that will run:\n' + reportLines.join('\n')
       : '\n\nNo optional reports selected.';
