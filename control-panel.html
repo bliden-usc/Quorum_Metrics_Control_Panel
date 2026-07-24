@@ -841,11 +841,6 @@
           <div class="config-group-heading">Thresholds</div>
 
           <div class="config-field">
-            <label for="config-required-file-count">Required Quorum File Count (pre-flight)</label>
-            <input type="number" class="config-number-input" id="config-required-file-count" min="1">
-          </div>
-
-          <div class="config-field">
             <label for="config-open-window-days">OPEN Interaction Window (days)</label>
             <input type="number" class="config-number-input" id="config-open-window-days" min="0">
           </div>
@@ -899,11 +894,11 @@
    *   webhook calls. CORS failures are caught and surfaced as friendly errors
    *   rather than silent failures.
    *
-   * Assumptions about webhook response shapes (verify with Barry):
-   *   box-file-check:
-   *     { fileCount: <number>, ready: <boolean> }   ← primary expected shape
-   *     Also handles: { file_count: <number> }, { count: <number> }
-   *     "ready" threshold: if `ready` field absent, assumes ready when fileCount >= 1
+   * Webhook response shape:
+   *   box-file-check (rebuilt 2026-07-24 to check file identity, not just
+   *   count — see code-nodes/box_check_build_readiness_report.js):
+   *     { ready: <boolean>, message: <string>, missingTypes, duplicateTypes,
+   *       unexpectedTypes, foundTypes, folderId, testMode }
    *
    *   schaeffer-run:
    *     Any 2xx response is treated as success; body is not parsed.
@@ -937,25 +932,12 @@
   let preflightPassed = false;
   let statusPollTimer = null; /* holds setInterval handle so polling can be stopped */
 
-  /*
-   * FILE COUNT THRESHOLD
-   *
-   * What: Minimum number of Box files required before the system is
-   *   considered "ready" when the webhook doesn't return an explicit
-   *   `ready: true` field.
-   *
-   * Why `let` (not `const`): loadConfig() updates this value from the
-   *   Config Manager GET endpoint after page load. The hardcoded 6 is
-   *   the fallback used only if the config load fails or the field is absent.
-   *
-   * Why 6: Committees.csv moved to the Systems Files subfolder and is no
-   *   longer part of the weekly Quorum upload set. The remaining 6 files
-   *   are the weekly Quorum exports this system consumes.
-   *
-   * Affects: runPreflightCheck() fallback threshold logic below;
-   *   also reflects whatever REQUIRED_FILE_COUNT the Config Manager returns.
-   */
-  let REQUIRED_FILE_COUNT = 6;
+  /* box-file-check now identifies each of the 6 required Quorum file TYPES by
+   * reading their headers, rather than just counting files — the webhook
+   * always returns a real `ready` boolean plus a human-readable `message`
+   * (missing/duplicate/unexpected types by name), so no client-side count
+   * fallback is needed anymore. Removed 2026-07-24 along with the
+   * REQUIRED_FILE_COUNT config field (see ROADMAP.md Phase 1). */
 
   /* Last config fetched from Config Manager — used by renderRecipientsBox() so
    * toggleDevMode() can update the recipients box without an extra GET that
@@ -1049,37 +1031,21 @@
         try { data = JSON.parse(text); } catch (_) { data = {}; }
       }
 
-      /* Normalise field names: fileCount, file_count, count */
-      const fileCount =
-        typeof data.fileCount  === 'number' ? data.fileCount  :
-        typeof data.file_count === 'number' ? data.file_count :
-        typeof data.count      === 'number' ? data.count      :
-        null;
-
-
       /* Show which Box folder was actually checked — confirms test vs production routing. */
       const modeNote = data.folderId
         ? ' <span style="font-size:11px;color:#888;">[' + (data.testMode ? 'test' : 'production') + ' folder ' + data.folderId + ']</span>'
         : '';
 
-      /* Determine ready status */
-      let ready;
-      if (typeof data.ready === 'boolean') {
-        ready = data.ready;
-      } else if (fileCount !== null) {
-        /* Fallback: use REQUIRED_FILE_COUNT constant (see declaration near top of script) */
-        ready = fileCount >= REQUIRED_FILE_COUNT;
-      } else {
-        ready = false;
-      }
+      /* box-file-check always returns a real `ready` boolean and a
+       * human-readable `message` (which required file types are missing,
+       * duplicated, or unexpected, by name) — no client-side count fallback
+       * needed anymore. See code-nodes/box_check_build_readiness_report.js. */
+      const ready = data.ready === true;
+      const message = data.message || (ready ? 'Ready.' : 'Not ready — could not confirm file status.');
 
       if (ready) {
-        const countPhrase = fileCount !== null
-          ? fileCount + ' file' + (fileCount !== 1 ? 's' : '') + ' found'
-          : 'files confirmed';
-
         showResult('preflight-result', 'success',
-          '&#10003; <strong>Ready</strong> — ' + countPhrase + '. You may proceed to Step 2.' + modeNote);
+          '&#10003; <strong>Ready</strong> — ' + message + ' You may proceed to Step 2.' + modeNote);
 
         preflightPassed = true;
         const runBtn = document.getElementById('btn-run');
@@ -1087,13 +1053,8 @@
         runBtn.innerHTML = 'Run System'; /* reset label if a previous trigger locked it */
 
       } else {
-        const countPhrase = fileCount !== null
-          ? 'Only ' + fileCount + ' file' + (fileCount !== 1 ? 's' : '') + ' found'
-          : 'Files not confirmed';
-
         showResult('preflight-result', 'warn',
-          '&#9888; <strong>Not ready</strong> — ' + countPhrase +
-          '. Box may still be registering the export. Please wait a few minutes and check again.' + modeNote);
+          '&#9888; <strong>Not ready</strong> — ' + message + modeNote);
       }
 
     } catch (err) {
@@ -1357,8 +1318,7 @@
    * What: loadConfig() calls GET /webhook/schaeffer-config and populates
    *   every config field in section-config with the returned values.
    *   Semicolon-separated strings (RECIPIENTS etc.) are split onto separate
-   *   lines for editing.  Also updates REQUIRED_FILE_COUNT so the pre-flight
-   *   check uses the live threshold, not the hardcoded fallback.
+   *   lines for editing.
    *
    * Why no API key: Config Manager webhooks are public endpoints on n8n Cloud.
    *   They do not require the X-N8N-API-KEY header.
@@ -1366,10 +1326,9 @@
    * Why called on DOMContentLoaded: the config section is always visible;
    *   eagerly loading means the staff member sees current values right away.
    *
-   * Depends on: WEBHOOK_CONFIG_GET constant; all DOM IDs in section-config;
-   *   REQUIRED_FILE_COUNT (let, declared near top of script).
+   * Depends on: WEBHOOK_CONFIG_GET constant; all DOM IDs in section-config.
    * Affects: all config-* input / textarea / select / checkbox elements;
-   *   #config-load-status; REQUIRED_FILE_COUNT module-level variable.
+   *   #config-load-status.
    */
   async function loadConfig() {
     const statusEl = document.getElementById('config-load-status');
@@ -1442,15 +1401,8 @@
 
       /* Number inputs */
 
-      setVal('config-required-file-count',    cfg.REQUIRED_FILE_COUNT    != null ? String(cfg.REQUIRED_FILE_COUNT)    : '');
       setVal('config-open-window-days',       cfg.OPEN_WINDOW_DAYS       != null ? String(cfg.OPEN_WINDOW_DAYS)       : '');
       setVal('config-schaeffer-staff',        cfg.SCHAEFFER_STAFF        != null ? String(cfg.SCHAEFFER_STAFF)        : '');
-
-      /* Dynamically update the pre-flight threshold so it uses the live value */
-      if (cfg.REQUIRED_FILE_COUNT != null) {
-        const parsed = parseInt(cfg.REQUIRED_FILE_COUNT, 10);
-        if (!isNaN(parsed) && parsed > 0) REQUIRED_FILE_COUNT = parsed;
-      }
 
       /* Update status grid recipients summary */
       const recipientsEl = document.getElementById('status-recipients');
@@ -1519,8 +1471,7 @@
    *   knows about avoids accidentally blanking unknown keys stored in Box.
    *
    * Affects: #config-save-btn (disabled during request);
-   *   #config-result (shows success / error feedback);
-   *   REQUIRED_FILE_COUNT (updated if user changed the field and saved).
+   *   #config-result (shows success / error feedback).
    */
   async function saveConfig() {
     const saveBtn = document.getElementById('config-save-btn');
@@ -1539,7 +1490,6 @@
         LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
-        REQUIRED_FILE_COUNT:          toNumOrNull('config-required-file-count'),
         OPEN_WINDOW_DAYS:             toNumOrNull('config-open-window-days'),
         SCHAEFFER_STAFF:              getVal('config-schaeffer-staff') || null
       };
@@ -1553,9 +1503,6 @@
       if (!resp.ok) {
         throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
       }
-
-      /* Update the live pre-flight threshold in case the user changed it */
-      if (payload.REQUIRED_FILE_COUNT != null) REQUIRED_FILE_COUNT = payload.REQUIRED_FILE_COUNT;
 
       showResult('config-result', 'success',
         '✓ <strong>Configuration saved.</strong> Changes will take effect on the next system run.');
