@@ -921,9 +921,18 @@
   /* ---- Webhook URLs ---- */
   const WEBHOOK_PREFLIGHT  = N8N_CLOUD_BASE + '/webhook/box-file-check';
   const WEBHOOK_TRIGGER    = N8N_CLOUD_BASE + '/webhook/schaeffer-run';
-  /* Config Manager — public webhooks, no API key required */
+  /* Config Manager webhooks now require a header key (added 2026-07-24, audit
+   * item M-01 — the webhook had no auth at all, so anyone with the URL could
+   * read or silently change pipeline settings). This page is public static
+   * hosting, so this key is visible to anyone who reads the page source —
+   * it isn't cryptographically strong. It still raises the bar over a fully
+   * open webhook: it blocks blind/accidental hits from just the URL (bots,
+   * scanners, a copy-pasted link) even though it wouldn't stop someone who
+   * deliberately inspects this file. Must match the "Schaeffer Config
+   * Webhook Auth" credential value on Config Manager's two webhook nodes. */
   const WEBHOOK_CONFIG_GET = N8N_CLOUD_BASE + '/webhook/schaeffer-config';
   const WEBHOOK_CONFIG_SET = N8N_CLOUD_BASE + '/webhook/schaeffer-config';
+  const CONFIG_WEBHOOK_KEY = 'LUO_4MbDMfZmLTPA4uBgycx7j3ehGjFM';
 
   /* ---- Polling interval (ms) — adjust without hunting through code ---- */
   const STATUS_POLL_INTERVAL_MS = 10000;
@@ -1231,7 +1240,7 @@
       try {
         const resp = await fetch(WEBHOOK_CONFIG_GET + '?t=' + Date.now(), {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json', 'X-Schaeffer-Key': CONFIG_WEBHOOK_KEY }
         });
         if (!resp.ok) return; /* transient error — keep trying */
 
@@ -1339,7 +1348,7 @@
       /* Cache-bust so we always get the live config, not a browser-cached copy. */
       const resp = await fetch(WEBHOOK_CONFIG_GET + '?t=' + Date.now(), {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json', 'X-Schaeffer-Key': CONFIG_WEBHOOK_KEY }
       });
 
       if (!resp.ok) {
@@ -1496,7 +1505,7 @@
 
       const resp = await fetch(WEBHOOK_CONFIG_SET, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Schaeffer-Key': CONFIG_WEBHOOK_KEY },
         body: JSON.stringify(payload)
       });
 
@@ -1649,7 +1658,7 @@
        * save can snap the UI back to DEV MODE immediately after a successful save. */
       const resp = await fetch(WEBHOOK_CONFIG_GET + '?t=' + Date.now(), {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json', 'X-Schaeffer-Key': CONFIG_WEBHOOK_KEY }
       });
 
       if (!resp.ok) {
@@ -1730,7 +1739,7 @@
     try {
       const resp = await fetch(WEBHOOK_CONFIG_SET, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Schaeffer-Key': CONFIG_WEBHOOK_KEY },
         body: JSON.stringify({ TEST_MODE: newVal }),
         signal: controller.signal
       });
