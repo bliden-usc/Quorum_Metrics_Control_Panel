@@ -836,15 +836,12 @@
           </div>
         </div>
 
-        <!-- Thresholds -->
-        <div class="config-group">
-          <div class="config-group-heading">Thresholds</div>
-
-          <div class="config-field">
-            <label for="config-open-window-days">OPEN Interaction Window (days)</label>
-            <input type="number" class="config-number-input" id="config-open-window-days" min="0">
-          </div>
-        </div>
+        <!-- OPEN window days control REMOVED 2026-09-29 (Barry's decision).
+             Widening this setting never reopens or refreshes frozen threads; it only
+             delays freezing, so it invited "fixes" that don't work. The stored value
+             (OPEN_WINDOW_DAYS in the Config Manager) is unchanged and is simply no
+             longer editable here. saveConfig() omits the key, and the Config Manager
+             keeps the stored value for any key not sent. -->
 
         <div class="config-group">
           <div class="config-group-heading">Team</div>
@@ -1410,7 +1407,6 @@
 
       /* Number inputs */
 
-      setVal('config-open-window-days',       cfg.OPEN_WINDOW_DAYS       != null ? String(cfg.OPEN_WINDOW_DAYS)       : '');
       setVal('config-schaeffer-staff',        cfg.SCHAEFFER_STAFF        != null ? String(cfg.SCHAEFFER_STAFF)        : '');
 
       /* Update status grid recipients summary */
@@ -1499,7 +1495,9 @@
         LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
-        OPEN_WINDOW_DAYS:             toNumOrNull('config-open-window-days'),
+        /* OPEN_WINDOW_DAYS deliberately omitted (control removed 2026-09-29).
+           Config Manager merges: an absent key keeps its stored value. Do not
+           send null here: it would be stored as the string "null". */
         SCHAEFFER_STAFF:              getVal('config-schaeffer-staff') || null
       };
 
