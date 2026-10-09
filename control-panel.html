@@ -758,6 +758,29 @@
 
     <div class="result-box" id="trigger-result"></div>
 
+    <!-- Re-run after fixes (added 2026-10-09). Sends the same report options as Run System
+         plus RERUN_FILL_FROM_LAST=true; the pipeline fills every missing Quorum file from
+         the last run's saved set in Box Historic before its normal file check.
+         Not gated on the pre-flight check: with only the changed files in the folder that
+         check reports "not ready", and the pipeline re-checks after filling. -->
+    <div style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:3px;padding:12px 16px;margin-top:14px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:8px;">Re-run after fixes</div>
+      <p style="margin:0 0 6px;font-size:13px;color:#555;line-height:1.55;">
+        Use this after staff fix Notes in Quorum. Download only the files that changed (usually just the
+        <strong>Notes</strong> export) into the Quorum Downloads folder in Box, wait until
+        <strong>Check File Status</strong> no longer lists them as missing, then click below.
+        The system fills in every other file from the last run's saved set and runs as normal,
+        with the report options chosen above. The "Pipeline Complete" email says which files were filled in.
+      </p>
+      <p style="margin:0 0 10px;font-size:13px;color:#555;line-height:1.55;">
+        If any person's details changed in Quorum, or a new person was added (for example a new stakeholder contact),
+        do a full fresh download of all 6 files and use <strong>Run System</strong> instead.
+      </p>
+      <button class="btn btn-primary" id="btn-rerun" onclick="runRerunAfterFixes()">
+        Re-run after fixes
+      </button>
+    </div>
+
     <div class="warn-note">
       <strong>Do not trigger twice.</strong>
     </div>
@@ -1209,6 +1232,70 @@
       /* Re-enable on failure so staff can retry */
       btn.disabled = false;
       btn.innerHTML = 'Run System';
+    }
+  }
+
+  /*
+   * runRerunAfterFixes() — "Re-run after fixes" button (added 2026-10-09).
+   *
+   * What: confirms, then calls schaeffer-run with the same report options as
+   *   Run System (buildRunParams()) plus RERUN_FILL_FROM_LAST=true.
+   * Why: after staff fix Notes the same day, the admin downloads only the changed
+   *   files. The pipeline (Main Pipeline "IF: Re-run Fill Requested?" branch) copies
+   *   every missing file type from the last run's saved set in Box Historic into the
+   *   downloads folder, never replacing a file that is there, then runs its normal
+   *   file check. Not gated on preflightPassed: with only some files present the
+   *   pre-flight check reports "not ready" by design.
+   * Affects: btn-rerun, btn-run, trigger-result; reuses startCompletionPolling().
+   */
+  async function runRerunAfterFixes() {
+    const confirmed = confirm(
+      'Re-run after fixes?\n\n' +
+      'The system will keep the files you downloaded (usually just Notes), fill in every other ' +
+      'Quorum file from the last run\'s saved set, and run with the report options chosen above.\n\n' +
+      'If any person\'s details changed in Quorum, cancel and do a full fresh download instead. ' +
+      'Do not trigger twice.'
+    );
+    if (!confirmed) return;
+
+    const btn = document.getElementById('btn-rerun');
+    const runBtn = document.getElementById('btn-run');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Triggering…';
+    showResult('trigger-result', 'loading',
+      '<span class="spinner"></span> Sending re-run trigger to n8n Cloud…');
+
+    try {
+      const params = new URLSearchParams(buildRunParams());
+      params.set('RERUN_FILL_FROM_LAST', 'true');
+      const resp = await fetch(WEBHOOK_TRIGGER + '?' + params.toString(), {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!resp.ok) {
+        throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
+      }
+
+      const triggerTime = new Date();
+      const stamp = nowStamp();
+      showResult('trigger-result', 'success',
+        'Re-run triggered at: ' + stamp +
+        ' &nbsp;<span class="spinner" id="completion-spinner" style="opacity:0.5;"></span>');
+      startCompletionPolling(triggerTime, stamp);
+
+      /* Lock both buttons for this session to prevent a double trigger */
+      btn.innerHTML = 'Re-run Triggered';
+      btn.disabled = true;
+      if (runBtn) runBtn.disabled = true;
+      preflightPassed = false;
+    } catch (err) {
+      const isCors = (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
+      const msg = isCors
+        ? 'Could not reach n8n Cloud. Make sure you have internet access, then try again. (CORS or network error)'
+        : 'Error: ' + err.message;
+      showResult('trigger-result', 'error', '&#10007; ' + msg);
+      btn.disabled = false;
+      btn.innerHTML = 'Re-run after fixes';
     }
   }
 
