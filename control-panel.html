@@ -849,15 +849,10 @@
             <input type="email" class="config-text-input" id="config-data-admin-email" placeholder="blank = Administrator Email" autocomplete="off">
           </div>
 
-          <!-- RECIPIENTS retired 2026-10-10: no email is sent to this list any more (the Weekly
-               Attention Report goes to record creators + the Data Administrator, and the
-               archived-Notes YES/NO email goes to the Data Administrator). The box is hidden,
-               not deleted, so Save still sends back the stored value unchanged and nothing
-               else in this page or the Config Manager needs to change. -->
-          <div class="config-field" style="display:none;" aria-hidden="true">
-            <label for="config-recipients">Retired recipients list (not used)</label>
-            <textarea class="config-ta" id="config-recipients" rows="4" placeholder="recipient@usc.edu"></textarea>
-          </div>
+          <!-- The old general recipients list was removed 2026-10-10 (box, load, save): no email
+               used it after the Weekly Attention Report moved to record creators + the Data
+               Administrator and the archived-Notes YES/NO email moved to the Data Administrator.
+               The Config Manager no longer stores that key either. -->
 
           <div class="config-field">
             <label for="config-leadership-recipients">Leadership Report Recipients (one per line)</label>
@@ -998,7 +993,7 @@
     const lr2 = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     const dr2 = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     /* Weekly Attention Report (2026-10-10): record creators + Data Administrator. Archived-Notes
-       YES/NO email: Data Administrator. RECIPIENTS is retired and no longer shown. */
+       YES/NO email: Data Administrator. (The old general recipients list was removed 2026-10-10.) */
     const da2 = cfg.DATA_ADMIN_EMAIL || cfg.ADMIN_EMAIL || '(not set)';
     if (isDevMode) {
       const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
@@ -1430,7 +1425,7 @@
   /*
    * What: loadConfig() calls GET /webhook/schaeffer-config and populates
    *   every config field in section-config with the returned values.
-   *   Semicolon-separated strings (RECIPIENTS etc.) are split onto separate
+   *   Semicolon-separated strings (LEADERSHIP_RECIPIENTS etc.) are split onto separate
    *   lines for editing.
    *
    * Why no API key: Config Manager webhooks are public endpoints on n8n Cloud.
@@ -1477,7 +1472,6 @@
       setVal('config-data-admin-email',              cfg.DATA_ADMIN_EMAIL            || '');
 
       /* Textareas — semicolon-separated → one per line */
-      setVal('config-recipients',           semiToLines(cfg.RECIPIENTS));
       setVal('config-leadership-recipients', semiToLines(cfg.LEADERSHIP_RECIPIENTS));
       setVal('config-dashboard-recipients',  semiToLines(cfg.DASHBOARD_RECIPIENTS));
 
@@ -1601,7 +1595,6 @@
          are sent directly via webhook query params when Run System is triggered. */
       const payload = {
         ADMIN_EMAIL:                  getVal('config-test-email'),
-        RECIPIENTS:                   linesToSemi('config-recipients'),   /* retired 2026-10-10; hidden box, stored value passed back unchanged */
         LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
