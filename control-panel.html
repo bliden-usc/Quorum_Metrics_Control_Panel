@@ -842,14 +842,20 @@
                Manager. Gets the FULL Weekly Attention Report (the only copy with the Unnamed
                Contacts list and the Quorum download check), must press "I've finished" like the
                record creators, and receives the one "all Quorum updates are confirmed" email.
-               Blank = the pipeline uses the Administrator Email above. -->
+               Blank = the pipeline uses the Administrator Email above.
+               Since 2026-10-10 it also gets the archived-Notes YES/NO email. -->
           <div class="config-field">
-            <label for="config-data-admin-email">Data Administrator <small style="font-weight:400;color:#666;">(gets the full Weekly Attention Report and the &ldquo;all updates confirmed&rdquo; email; leave blank to use the Administrator Email)</small></label>
+            <label for="config-data-admin-email">Data Administrator <small style="font-weight:400;color:#666;">(gets the full Weekly Attention Report, the &ldquo;all updates confirmed&rdquo; email and the archived-Notes YES/NO email; leave blank to use the Administrator Email)</small></label>
             <input type="email" class="config-text-input" id="config-data-admin-email" placeholder="blank = Administrator Email" autocomplete="off">
           </div>
 
-          <div class="config-field">
-            <label for="config-recipients">Quorum Deficiency Report Recipients (one address per line)</label>
+          <!-- RECIPIENTS retired 2026-10-10: no email is sent to this list any more (the Weekly
+               Attention Report goes to record creators + the Data Administrator, and the
+               archived-Notes YES/NO email goes to the Data Administrator). The box is hidden,
+               not deleted, so Save still sends back the stored value unchanged and nothing
+               else in this page or the Config Manager needs to change. -->
+          <div class="config-field" style="display:none;" aria-hidden="true">
+            <label for="config-recipients">Retired recipients list (not used)</label>
             <textarea class="config-ta" id="config-recipients" rows="4" placeholder="recipient@usc.edu"></textarea>
           </div>
 
@@ -989,23 +995,23 @@
   function renderRecipientsBox(isDevMode, cfg) {
     const recipientsEl = document.getElementById('status-recipients');
     if (!recipientsEl) return;
-    const rr2 = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     const lr2 = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     const dr2 = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
-    /* Weekly Attention Report (2026-10-10): record creators + Data Administrator, not RECIPIENTS. */
+    /* Weekly Attention Report (2026-10-10): record creators + Data Administrator. Archived-Notes
+       YES/NO email: Data Administrator. RECIPIENTS is retired and no longer shown. */
     const da2 = cfg.DATA_ADMIN_EMAIL || cfg.ADMIN_EMAIL || '(not set)';
     if (isDevMode) {
       const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
       recipientsEl.innerHTML =
         '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
         '<span style="color:#888;font-size:0.9em;">Prod Weekly Attention Report: record creators + Data Administrator (' + da2 + ')<br>' +
-        'Prod Archived-Notes YES/NO: ' + rr2 + '<br>' +
+        'Prod Archived-Notes YES/NO: Data Administrator (' + da2 + ')<br>' +
         'Prod Leadership: ' + lr2 + '<br>' +
         'Prod Progress reports: ' + dr2 + '</span>';
     } else {
       recipientsEl.innerHTML =
         'Weekly Attention Report: <strong>record creators + Data Administrator (' + da2 + ')</strong><br>' +
-        'Archived-Notes YES/NO: <strong>' + rr2 + '</strong><br>' +
+        'Archived-Notes YES/NO: <strong>Data Administrator (' + da2 + ')</strong><br>' +
         'Leadership: <strong>' + lr2 + '</strong><br>' +
         'Progress reports: <strong>' + dr2 + '</strong>';
     }
@@ -1515,7 +1521,6 @@
       const recipientsEl = document.getElementById('status-recipients');
       if (recipientsEl) {
         const isTest = cfg.TEST_MODE === true || cfg.TEST_MODE === 'true';
-        const rr = semiToLines(cfg.RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         const lr = semiToLines(cfg.LEADERSHIP_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         const dr = semiToLines(cfg.DASHBOARD_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         const da = cfg.DATA_ADMIN_EMAIL || cfg.ADMIN_EMAIL || '(not set)';
@@ -1525,13 +1530,13 @@
             '<em style="color:#b45309;">Dev Mode Recipients: Emails go to Administrator only</em><br>' +
             '<span style="color:#888;font-size:0.9em;">Routing to: <strong style="color:#888;">' + adminEmail + '</strong></span><br>' +
             '<span style="color:#bbb;font-size:0.9em;text-decoration:line-through;">Weekly Attention Report: record creators + Data Administrator (' + da + ')<br>' +
-            'Archived-Notes YES/NO: ' + rr + '<br>' +
+            'Archived-Notes YES/NO: Data Administrator (' + da + ')<br>' +
             'Leadership: ' + lr + '<br>' +
             'Progress reports: ' + dr + '</span>';
         } else {
           recipientsEl.innerHTML =
             'Weekly Attention Report: <strong>record creators + Data Administrator (' + da + ')</strong><br>' +
-            'Archived-Notes YES/NO: <strong>' + rr + '</strong><br>' +
+            'Archived-Notes YES/NO: <strong>Data Administrator (' + da + ')</strong><br>' +
             'Leadership: <strong>' + lr + '</strong><br>' +
             'Progress reports: <strong>' + dr + '</strong>';
         }
@@ -1596,7 +1601,7 @@
          are sent directly via webhook query params when Run System is triggered. */
       const payload = {
         ADMIN_EMAIL:                  getVal('config-test-email'),
-        RECIPIENTS:                   linesToSemi('config-recipients'),
+        RECIPIENTS:                   linesToSemi('config-recipients'),   /* retired 2026-10-10; hidden box, stored value passed back unchanged */
         LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
