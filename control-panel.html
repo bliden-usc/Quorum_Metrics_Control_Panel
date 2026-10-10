@@ -838,6 +838,16 @@
             <input type="email" class="config-text-input" id="config-test-email" placeholder="administrator@usc.edu" autocomplete="off">
           </div>
 
+          <!-- Data Administrator (added 2026-10-10). Stored as DATA_ADMIN_EMAIL by the Config
+               Manager. Gets the FULL Weekly Attention Report (the only copy with the Unnamed
+               Contacts list and the Quorum download check), must press "I've finished" like the
+               record creators, and receives the one "all Quorum updates are confirmed" email.
+               Blank = the pipeline uses the Administrator Email above. -->
+          <div class="config-field">
+            <label for="config-data-admin-email">Data Administrator <small style="font-weight:400;color:#666;">(gets the full Weekly Attention Report and the &ldquo;all updates confirmed&rdquo; email; leave blank to use the Administrator Email)</small></label>
+            <input type="email" class="config-text-input" id="config-data-admin-email" placeholder="blank = Administrator Email" autocomplete="off">
+          </div>
+
           <div class="config-field">
             <label for="config-recipients">Quorum Deficiency Report Recipients (one address per line)</label>
             <textarea class="config-ta" id="config-recipients" rows="4" placeholder="recipient@usc.edu"></textarea>
@@ -982,16 +992,20 @@
     const rr2 = (cfg.RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     const lr2 = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     const dr2 = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
+    /* Weekly Attention Report (2026-10-10): record creators + Data Administrator, not RECIPIENTS. */
+    const da2 = cfg.DATA_ADMIN_EMAIL || cfg.ADMIN_EMAIL || '(not set)';
     if (isDevMode) {
       const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
       recipientsEl.innerHTML =
         '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
-        '<span style="color:#888;font-size:0.9em;">Prod Deficiency: ' + rr2 + '<br>' +
+        '<span style="color:#888;font-size:0.9em;">Prod Weekly Attention Report: record creators + Data Administrator (' + da2 + ')<br>' +
+        'Prod Archived-Notes YES/NO: ' + rr2 + '<br>' +
         'Prod Leadership: ' + lr2 + '<br>' +
         'Prod Progress reports: ' + dr2 + '</span>';
     } else {
       recipientsEl.innerHTML =
-        'Deficiency: <strong>' + rr2 + '</strong><br>' +
+        'Weekly Attention Report: <strong>record creators + Data Administrator (' + da2 + ')</strong><br>' +
+        'Archived-Notes YES/NO: <strong>' + rr2 + '</strong><br>' +
         'Leadership: <strong>' + lr2 + '</strong><br>' +
         'Progress reports: <strong>' + dr2 + '</strong>';
     }
@@ -1454,6 +1468,7 @@
       /* Text inputs */
       setVal('config-test-email',                    cfg.ADMIN_EMAIL                 || '');
       setVal('config-completion-signal-recipient',   cfg.COMPLETION_SIGNAL_RECIPIENT || '');
+      setVal('config-data-admin-email',              cfg.DATA_ADMIN_EMAIL            || '');
 
       /* Textareas — semicolon-separated → one per line */
       setVal('config-recipients',           semiToLines(cfg.RECIPIENTS));
@@ -1503,17 +1518,20 @@
         const rr = semiToLines(cfg.RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         const lr = semiToLines(cfg.LEADERSHIP_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         const dr = semiToLines(cfg.DASHBOARD_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
+        const da = cfg.DATA_ADMIN_EMAIL || cfg.ADMIN_EMAIL || '(not set)';
         if (isTest) {
           const adminEmail = cfg.ADMIN_EMAIL || '(not set)';
           recipientsEl.innerHTML =
             '<em style="color:#b45309;">Dev Mode Recipients: Emails go to Administrator only</em><br>' +
             '<span style="color:#888;font-size:0.9em;">Routing to: <strong style="color:#888;">' + adminEmail + '</strong></span><br>' +
-            '<span style="color:#bbb;font-size:0.9em;text-decoration:line-through;">Deficiency: ' + rr + '<br>' +
+            '<span style="color:#bbb;font-size:0.9em;text-decoration:line-through;">Weekly Attention Report: record creators + Data Administrator (' + da + ')<br>' +
+            'Archived-Notes YES/NO: ' + rr + '<br>' +
             'Leadership: ' + lr + '<br>' +
             'Progress reports: ' + dr + '</span>';
         } else {
           recipientsEl.innerHTML =
-            'Deficiency: <strong>' + rr + '</strong><br>' +
+            'Weekly Attention Report: <strong>record creators + Data Administrator (' + da + ')</strong><br>' +
+            'Archived-Notes YES/NO: <strong>' + rr + '</strong><br>' +
             'Leadership: <strong>' + lr + '</strong><br>' +
             'Progress reports: <strong>' + dr + '</strong>';
         }
@@ -1582,6 +1600,9 @@
         LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
+        /* DATA_ADMIN_EMAIL (2026-10-10): '' when blank (never null, which would be stored as
+           the string "null"); Read Config then falls back to ADMIN_EMAIL. */
+        DATA_ADMIN_EMAIL:             getVal('config-data-admin-email'),
         /* OPEN_WINDOW_DAYS deliberately omitted (control removed 2026-09-29).
            Config Manager merges: an absent key keeps its stored value. Do not
            send null here: it would be stored as the string "null". */
