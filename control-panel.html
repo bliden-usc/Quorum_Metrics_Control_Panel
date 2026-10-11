@@ -564,41 +564,6 @@
       font-style: italic;
     }
 
-    /* ---------- leadership report options panel ---------- */
-    .leadership-opts {
-      margin-top: 10px;
-      padding: 12px 16px;
-      background: #f4f4f4;
-      border: 1px solid #e0e0e0;
-      border-radius: 3px;
-    }
-    .leadership-opts-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-    .leadership-opts-row:last-of-type { margin-bottom: 0; }
-    .leadership-opts-row label.field-lbl {
-      font-size: 12px;
-      color: #888;
-      white-space: nowrap;
-      min-width: 50px;
-    }
-    .year-type-group {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-    }
-    .year-type-group label {
-      font-size: 13px;
-      color: #444;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -691,27 +656,9 @@
         <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Update</label>
       </div>
 
-      <!-- Leadership Report -->
-      <div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#333;cursor:pointer;user-select:none;">
-          <input type="checkbox" id="opt-leadership-report" style="width:15px;height:15px;accent-color:#990000;" onchange="onLeadershipReportToggle()">
-          Leadership Reports
-        </label>
-        <div id="leadership-options-panel" class="leadership-opts" style="display:none;">
-          <div class="leadership-opts-row">
-            <label class="field-lbl" for="config-leadership-period">Period:</label>
-            <select class="config-select" id="config-leadership-period" style="max-width:170px;" onchange="onLeadershipPeriodChange()">
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="annual" selected>Annual</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-          <div id="leadership-option-picker" class="leadership-opts-row"></div>
-          <p style="margin:6px 0 0;font-size:12px;color:#888;">These settings are sent when you click <strong>Run System</strong>.</p>
-        </div>
-      </div>
+      <!-- The Leadership Report checkbox and its Period/Option panel were removed 2026-10-11:
+           Barry removed the Leadership Report from the project (code archived in the n8n-project
+           repo at code-nodes/parked/leadership-report-2026-10-11/; may return in a future version). -->
     </div>
 
 
@@ -854,10 +801,7 @@
                Administrator and the archived-Notes YES/NO email moved to the Data Administrator.
                The Config Manager no longer stores that key either. -->
 
-          <div class="config-field">
-            <label for="config-leadership-recipients">Leadership Report Recipients (one per line)</label>
-            <textarea class="config-ta" id="config-leadership-recipients" rows="3" placeholder="dean@usc.edu"></textarea>
-          </div>
+          <!-- Leadership Report Recipients box removed 2026-10-11 with the Leadership Report. -->
 
           <div class="config-field">
             <label for="config-dashboard-recipients">Progress Report(s) Recipients (one per line)</label>
@@ -990,7 +934,6 @@
   function renderRecipientsBox(isDevMode, cfg) {
     const recipientsEl = document.getElementById('status-recipients');
     if (!recipientsEl) return;
-    const lr2 = (cfg.LEADERSHIP_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     const dr2 = (cfg.DASHBOARD_RECIPIENTS || '').split(';').map(function(s) { return s.trim(); }).filter(Boolean).join(', ') || '(none set)';
     /* Weekly Attention Report (2026-10-10): record creators + Data Administrator. Archived-Notes
        YES/NO email: Data Administrator. (The old general recipients list was removed 2026-10-10.) */
@@ -1001,13 +944,11 @@
         '<em style="color:#b45309;">Dev Mode — routing to: <strong>' + adminEmail + '</strong></em><br>' +
         '<span style="color:#888;font-size:0.9em;">Prod Weekly Attention Report: record creators + Data Administrator (' + da2 + ')<br>' +
         'Prod Archived-Notes YES/NO: Data Administrator (' + da2 + ')<br>' +
-        'Prod Leadership: ' + lr2 + '<br>' +
         'Prod Progress reports: ' + dr2 + '</span>';
     } else {
       recipientsEl.innerHTML =
         'Weekly Attention Report: <strong>record creators + Data Administrator (' + da2 + ')</strong><br>' +
         'Archived-Notes YES/NO: <strong>Data Administrator (' + da2 + ')</strong><br>' +
-        'Leadership: <strong>' + lr2 + '</strong><br>' +
         'Progress reports: <strong>' + dr2 + '</strong>';
     }
   }
@@ -1137,22 +1078,8 @@
   function buildRunParams() {
     const params = new URLSearchParams();
 
-    /* Leadership Report */
-    const sendLR = !!(document.getElementById('opt-leadership-report') || {}).checked;
-    params.set('SEND_LEADERSHIP_REPORT', sendLR ? 'true' : 'false');
-    if (sendLR) {
-      const mode = getLeadershipPeriod();
-      params.set('REPORT_MODE', mode);
-      const refDate = getLeadershipReferenceDate();
-      if (refDate) params.set('REPORT_REFERENCE_DATE', refDate);
-      params.set('REPORT_YEAR_TYPE', getLeadershipYearType());
-      if (mode === 'custom') {
-        const cs = getLeadershipCustomDate('start');
-        const ce = getLeadershipCustomDate('end');
-        if (cs) params.set('REPORT_CUSTOM_START', cs);
-        if (ce) params.set('REPORT_CUSTOM_END', ce);
-      }
-    }
+    /* (Leadership Report params SEND_LEADERSHIP_REPORT / REPORT_MODE / REPORT_REFERENCE_DATE /
+       REPORT_YEAR_TYPE / REPORT_CUSTOM_* removed 2026-10-11 with the Leadership Report.) */
 
     /* Weekly reports — always send explicit flag so system defaults to off when unchecked */
     const sendWD = !!(document.getElementById('opt-weekly-deficiency') || {}).checked;
@@ -1178,11 +1105,9 @@
     }
 
     /* Build human-readable summary of what will run for the confirmation dialog */
-    const sendLR = !!(document.getElementById('opt-leadership-report') || {}).checked;
     const sendWD = !!(document.getElementById('opt-weekly-deficiency') || {}).checked;
     const sendWU = !!(document.getElementById('opt-weekly-update') || {}).checked;
     const reportLines = [];
-    if (sendLR) reportLines.push('  • Leadership Report (' + getLeadershipPeriod() + ')');
     if (sendWD) reportLines.push('  • Weekly Quorum Deficiency');
     if (sendWU) reportLines.push('  • Weekly Update');
     const sendMD2 = !!(document.getElementById('opt-monthly-draft') || {}).checked;
@@ -1425,7 +1350,7 @@
   /*
    * What: loadConfig() calls GET /webhook/schaeffer-config and populates
    *   every config field in section-config with the returned values.
-   *   Semicolon-separated strings (LEADERSHIP_RECIPIENTS etc.) are split onto separate
+   *   Semicolon-separated strings (DASHBOARD_RECIPIENTS etc.) are split onto separate
    *   lines for editing.
    *
    * Why no API key: Config Manager webhooks are public endpoints on n8n Cloud.
@@ -1472,40 +1397,9 @@
       setVal('config-data-admin-email',              cfg.DATA_ADMIN_EMAIL            || '');
 
       /* Textareas — semicolon-separated → one per line */
-      setVal('config-leadership-recipients', semiToLines(cfg.LEADERSHIP_RECIPIENTS));
       setVal('config-dashboard-recipients',  semiToLines(cfg.DASHBOARD_RECIPIENTS));
 
-      /* Note: REPORT_START_DATE / REPORT_END_DATE are legacy keys — replaced by
-         REPORT_REFERENCE_DATE (for auto-computed periods) and REPORT_CUSTOM_START /
-         REPORT_CUSTOM_END (for custom mode). Restored below with the leadership controls. */
-
-      /* Leadership Report period/mode — restore selector and picker from config.
-         SEND_LEADERSHIP_REPORT is a per-run flag NOT stored in Box config, so the
-         Config Manager always returns it as false. Do NOT restore the checkbox here —
-         doing so would silently uncheck it whenever Save Settings is clicked, which
-         was causing "No Leadership report sent" on runs where Barry saved config
-         mid-session and didn't notice the checkbox got reset. */
-      var lrCb = document.getElementById('opt-leadership-report');
-      var lrPanel = document.getElementById('leadership-options-panel');
-      var lrPeriodSel = document.getElementById('config-leadership-period');
-      if (lrPeriodSel && cfg.REPORT_MODE) lrPeriodSel.value = cfg.REPORT_MODE;
-      var currentlySendingLR = lrCb && lrCb.checked;
-      if (currentlySendingLR && cfg.REPORT_MODE) {
-        var lrPicker = document.getElementById('leadership-option-picker');
-        if (lrPicker) {
-          var refDate  = cfg.REPORT_REFERENCE_DATE || null;
-          var yearType = cfg.REPORT_YEAR_TYPE       || 'fiscal';
-          lrPicker.innerHTML = renderLeadershipOptionPickerHTML(cfg.REPORT_MODE, refDate, yearType);
-          if (cfg.REPORT_MODE === 'annual') {
-            lrPicker.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) {
-              r.addEventListener('change', refreshAnnualYearOptions);
-            });
-          }
-          if (cfg.REPORT_MODE === 'custom' && cfg.REPORT_CUSTOM_END) {
-            setVal('config-lr-end', cfg.REPORT_CUSTOM_END);
-          }
-        }
-      }
+      /* (Leadership Report period restore removed 2026-10-11 with the Leadership Report.) */
 
       /* Number inputs */
 
@@ -1515,7 +1409,6 @@
       const recipientsEl = document.getElementById('status-recipients');
       if (recipientsEl) {
         const isTest = cfg.TEST_MODE === true || cfg.TEST_MODE === 'true';
-        const lr = semiToLines(cfg.LEADERSHIP_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         const dr = semiToLines(cfg.DASHBOARD_RECIPIENTS).replace(/\n/g, ', ') || '(none set)';
         const da = cfg.DATA_ADMIN_EMAIL || cfg.ADMIN_EMAIL || '(not set)';
         if (isTest) {
@@ -1525,13 +1418,11 @@
             '<span style="color:#888;font-size:0.9em;">Routing to: <strong style="color:#888;">' + adminEmail + '</strong></span><br>' +
             '<span style="color:#bbb;font-size:0.9em;text-decoration:line-through;">Weekly Attention Report: record creators + Data Administrator (' + da + ')<br>' +
             'Archived-Notes YES/NO: Data Administrator (' + da + ')<br>' +
-            'Leadership: ' + lr + '<br>' +
             'Progress reports: ' + dr + '</span>';
         } else {
           recipientsEl.innerHTML =
             'Weekly Attention Report: <strong>record creators + Data Administrator (' + da + ')</strong><br>' +
             'Archived-Notes YES/NO: <strong>Data Administrator (' + da + ')</strong><br>' +
-            'Leadership: <strong>' + lr + '</strong><br>' +
             'Progress reports: <strong>' + dr + '</strong>';
         }
       }
@@ -1590,12 +1481,13 @@
 
     try {
       /* Build payload from current field values */
-      /* Persistent settings only — report flags (SEND_LEADERSHIP_REPORT, REPORT_MODE,
-         REPORT_REFERENCE_DATE, etc.) are NOT saved here. They are per-run intent and
+      /* Persistent settings only — report flags (SEND_WEEKLY_UPDATE, SEND_WEEKLY_DEFICIENCY,
+         SEND_MONTHLY_DRAFT, etc.) are NOT saved here. They are per-run intent and
          are sent directly via webhook query params when Run System is triggered. */
       const payload = {
         ADMIN_EMAIL:                  getVal('config-test-email'),
-        LEADERSHIP_RECIPIENTS:        linesToSemi('config-leadership-recipients'),
+        /* LEADERSHIP_RECIPIENTS removed 2026-10-11 with the Leadership Report (the Config Manager
+           no longer keeps that key, so the next save deletes the stored value). */
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
         COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
         /* DATA_ADMIN_EMAIL (2026-10-10): '' when blank (never null, which would be stored as
@@ -1904,204 +1796,8 @@
     }
   }
 
-  /* ============================================================
-     LEADERSHIP REPORT OPTIONS  (Phase 5 reports section)
-  ============================================================ */
-
-  /*
-   * What: Show/hide the Period + Option panel when the Leadership Reports
-   *   checkbox is toggled. Initializes the option picker on first show.
-   * Why: Leadership Reports are on-demand (quarterly or less often); the
-   *   checkbox tells the system whether to generate the report on the next trigger.
-   */
-  function onLeadershipReportToggle() {
-    var cb    = document.getElementById('opt-leadership-report');
-    var panel = document.getElementById('leadership-options-panel');
-    if (!panel) return;
-    var showing = cb && cb.checked;
-    panel.style.display = showing ? 'block' : 'none';
-    if (showing) { onLeadershipPeriodChange(); }
-  }
-
-  /*
-   * What: Re-renders #leadership-option-picker when the Period dropdown changes.
-   * Why: Each period needs different controls — week picker, month picker,
-   *   quarter picker, fiscal/calendar year selector, or start/end date fields.
-   * Reads:  #config-leadership-period
-   * Writes: #leadership-option-picker innerHTML + wires annual radio listeners
-   */
-  function onLeadershipPeriodChange() {
-    var sel    = document.getElementById('config-leadership-period');
-    var mode   = sel ? sel.value : 'annual';
-    var picker = document.getElementById('leadership-option-picker');
-    if (!picker) return;
-    picker.innerHTML = renderLeadershipOptionPickerHTML(mode, null, 'fiscal');
-    if (mode === 'annual') {
-      picker.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) {
-        r.addEventListener('change', refreshAnnualYearOptions);
-      });
-    }
-  }
-
-  /*
-   * What: Builds inner HTML for the option-picker row for a given period mode.
-   *   referenceDate — ISO date from saved config; pre-selects the right option.
-   *   yearType — 'fiscal' | 'calendar'; used for annual mode only.
-   */
-  function renderLeadershipOptionPickerHTML(mode, referenceDate, yearType) {
-    if (mode === 'custom') {
-      return '<label class="field-lbl">Start:</label>' +
-        '<input type="date" class="config-date-input" id="config-lr-start"' +
-        ' style="max-width:175px;" value="' + (referenceDate || '') + '">' +
-        '<label class="field-lbl" style="margin-left:6px;">End:</label>' +
-        '<input type="date" class="config-date-input" id="config-lr-end" style="max-width:175px;">';
-    }
-    if (mode === 'annual') {
-      var fiscal   = (yearType !== 'calendar');
-      var yearOpts = buildAnnualOptions(fiscal, referenceDate);
-      return '<label class="field-lbl" for="config-lr-year">Year:</label>' +
-        '<select class="config-select" id="config-lr-year" style="max-width:180px;">' +
-        yearOpts.map(function(o) {
-          return '<option value="' + o.value + '"' + (o.selected ? ' selected' : '') + '>' + o.label + '</option>';
-        }).join('') + '</select>' +
-        '<div class="year-type-group">' +
-          '<label><input type="radio" name="lr-year-type" value="fiscal"'  + (fiscal  ? ' checked' : '') + '> Fiscal</label>' +
-          '<label><input type="radio" name="lr-year-type" value="calendar"' + (!fiscal ? ' checked' : '') + '> Calendar</label>' +
-        '</div>';
-    }
-    var label, opts;
-    if      (mode === 'weekly')    { label = 'Week:';    opts = buildWeekOptions(referenceDate);    }
-    else if (mode === 'monthly')   { label = 'Month:';   opts = buildMonthOptions(referenceDate);   }
-    else /* quarterly */           { label = 'Quarter:'; opts = buildQuarterOptions(referenceDate); }
-    return '<label class="field-lbl" for="config-lr-option">' + label + '</label>' +
-      '<select class="config-select" id="config-lr-option" style="max-width:235px;">' +
-      opts.map(function(o) {
-        return '<option value="' + o.value + '"' + (o.selected ? ' selected' : '') + '>' + o.label + '</option>';
-      }).join('') + '</select>';
-  }
-
-  /* Rebuilds the year dropdown when fiscal ↔ calendar radio changes. */
-  function refreshAnnualYearOptions() {
-    var yearType = 'fiscal';
-    document.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) { if (r.checked) yearType = r.value; });
-    var yearSel = document.getElementById('config-lr-year');
-    var curVal  = yearSel ? yearSel.value : null;
-    var opts    = buildAnnualOptions(yearType === 'fiscal', null);
-    if (yearSel) {
-      yearSel.innerHTML = opts.map(function(o) {
-        return '<option value="' + o.value + '"' + (o.value === curVal ? ' selected' : '') + '>' + o.label + '</option>';
-      }).join('');
-    }
-  }
-
-  /* ---- Helpers for saveConfig to read leadership fields ---- */
-
-  function getLeadershipPeriod() {
-    var sel = document.getElementById('config-leadership-period');
-    return sel ? sel.value : '';
-  }
-
-  function getLeadershipReferenceDate() {
-    var mode = getLeadershipPeriod();
-    if (mode === 'custom') return '';
-    if (mode === 'annual') {
-      var s = document.getElementById('config-lr-year');
-      return s ? s.value : '';
-    }
-    var s = document.getElementById('config-lr-option');
-    return s ? s.value : '';
-  }
-
-  function getLeadershipYearType() {
-    var val = 'fiscal';
-    document.querySelectorAll('input[name="lr-year-type"]').forEach(function(r) { if (r.checked) val = r.value; });
-    return val;
-  }
-
-  function getLeadershipCustomDate(which) {
-    if (getLeadershipPeriod() !== 'custom') return '';
-    var el = document.getElementById(which === 'start' ? 'config-lr-start' : 'config-lr-end');
-    return el ? el.value : '';
-  }
-
-  /* ---- Option list builders ---- */
-
-  /* Last 12 completed Mon–Sun weeks. Value = ISO date of that Monday. */
-  function buildWeekOptions(selectedVal) {
-    var opts = [], now = new Date();
-    now.setHours(0, 0, 0, 0);
-    var day = now.getDay(); /* 0=Sun */
-    var daysSinceMon = (day === 0) ? 6 : day - 1;
-    /* Step back one full week past the current partial week */
-    var lastMon = new Date(now.getTime() - (daysSinceMon + 7) * 86400000);
-    for (var i = 0; i < 12; i++) {
-      var mon = new Date(lastMon.getTime() - i * 7 * 86400000);
-      var sun = new Date(mon.getTime() + 6 * 86400000);
-      var val = isoDate(mon);
-      opts.push({ value: val, selected: selectedVal === val,
-        label: 'Week of ' + fmtMD(mon) + ' – ' + fmtMDY(sun) });
-    }
-    return opts;
-  }
-
-  /* Last 18 completed calendar months. Value = ISO date of 1st of that month. */
-  function buildMonthOptions(selectedVal) {
-    var opts = [], now = new Date(), y = now.getFullYear(), m = now.getMonth();
-    for (var i = 1; i <= 18; i++) {
-      var cm = m - i, cy = y;
-      while (cm < 0) { cm += 12; cy--; }
-      var d = new Date(cy, cm, 1);
-      var val = isoDate(d);
-      opts.push({ value: val, selected: selectedVal === val,
-        label: d.toLocaleString('en-US', { month: 'long', year: 'numeric' }) });
-    }
-    return opts;
-  }
-
-  /* Last 8 completed fiscal quarters (Q1=Jul-Sep, Q2=Oct-Dec, Q3=Jan-Mar, Q4=Apr-Jun).
-     Value = ISO date of the first day of that quarter. */
-  function buildQuarterOptions(selectedVal) {
-    var opts = [], now = new Date(), y = now.getFullYear(), m = now.getMonth();
-    var fyBase, fqBase;
-    if (m >= 6) { fyBase = y;     fqBase = Math.floor((m - 6) / 3); }
-    else         { fyBase = y - 1; fqBase = 2 + Math.floor(m / 3);  }
-    for (var i = 1; i <= 8; i++) {
-      var q0 = fqBase - i, fy = fyBase;
-      while (q0 < 0) { q0 += 4; fy--; }
-      var qNum = q0 + 1, qMo, qYr;
-      if      (qNum === 1) { qMo = 6; qYr = fy;     }
-      else if (qNum === 2) { qMo = 9; qYr = fy;     }
-      else if (qNum === 3) { qMo = 0; qYr = fy + 1; }
-      else                 { qMo = 3; qYr = fy + 1; }
-      var val = isoDate(new Date(qYr, qMo, 1));
-      opts.push({ value: val, selected: selectedVal === val,
-        label: 'Q' + qNum + ' FY ' + fy + '–' + String(fy + 1).slice(2) });
-    }
-    return opts;
-  }
-
-  /* Last 5 fiscal (Jul 1) or calendar (Jan 1) years.
-     Value = ISO date of the first day of that year span. */
-  function buildAnnualOptions(fiscal, selectedVal) {
-    var opts = [], now = new Date(), y = now.getFullYear();
-    if (fiscal) {
-      var fyStart = now.getMonth() >= 6 ? y : y - 1;
-      for (var i = 0; i <= 4; i++) {
-        var fy  = fyStart - i;
-        var val = isoDate(new Date(fy, 6, 1)); /* July 1 */
-        opts.push({ value: val, selected: selectedVal ? selectedVal === val : i === 0,
-          label: 'FY ' + fy + '–' + String(fy + 1).slice(2) });
-      }
-    } else {
-      for (var i = 0; i <= 4; i++) {
-        var cy  = y - i;
-        var val = isoDate(new Date(cy, 0, 1)); /* Jan 1 */
-        opts.push({ value: val, selected: selectedVal ? selectedVal === val : i === 0,
-          label: String(cy) });
-      }
-    }
-    return opts;
-  }
+  /* Leadership Report period picker (onLeadershipReportToggle, the week/month/quarter/annual option
+     builders and their getters) removed 2026-10-11 with the Leadership Report. */
 
   /* ---- Shared date utilities ---- */
   function isoDate(d) {
