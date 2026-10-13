@@ -541,8 +541,19 @@
     <p class="card-sub" style="margin-bottom:0;">
       The system copies every file you did not download from the last run's saved set in Box (the Historic folder),
       then runs as normal. The "Pipeline Complete" email says which files were filled in and from which run.
-      If any person's details changed in Quorum, or a new person was added (for example a new stakeholder contact,
-      or a changed title, organization or email), download all 6 files fresh and use <strong>Run System</strong> instead.
+    </p>
+    <p class="card-sub" style="margin:8px 0 4px;">
+      <strong>Which files to download.</strong> Download every file that shows the change:
+    </p>
+    <ul style="margin:0 0 8px 18px;padding:0;font-size:14px;line-height:1.6;">
+      <li>A fix on a Note (blank fields, an archived duplicate): <strong>Notes</strong>.</li>
+      <li>A contact's name, email, organization or title (for example naming an "Unnamed Contact"), or a new contact added to a Note: <strong>Notes</strong> and <strong>Contacts</strong>. A person's name on a Note comes from the Notes export; their email, organization and title come from the Contacts export.</li>
+      <li>A staffer's details: <strong>Notes</strong> and <strong>Staff</strong>.</li>
+      <li>An official's details: <strong>Notes</strong> and <strong>Officials</strong>.</li>
+    </ul>
+    <p class="card-sub" style="margin-bottom:0;">
+      If a fix involves an Outbox email, download all 6 files fresh and use <strong>Run System</strong> instead.
+      The two Outbox files are matched to each other, so a new Outbox Emails file should not run with last run's Outbox Envelopes file.
     </p>
   </section>
 
