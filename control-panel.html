@@ -652,7 +652,7 @@
 
       <!-- Weekly reports -->
       <div class="report-checkbox-group" style="margin-bottom:12px;">
-        <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-deficiency" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Quorum Deficiency</label>
+        <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-deficiency" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Attention Report</label>
         <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Update</label>
       </div>
 
@@ -782,7 +782,9 @@
           <div class="config-group-heading">Email Settings</div>
 
           <div class="config-field">
-            <label for="config-test-email">Administrator Email <small style="font-weight:400;color:#666;">(all emails route here in Dev Mode — does not affect the recipient lists below)</small></label>
+            <!-- Since 2026-10-16 the Administrator also gets the "Pipeline Complete" email after every
+                 run; the separate System Completion Alert Recipient setting was removed (field, load, save). -->
+            <label for="config-test-email">Administrator Email <small style="font-weight:400;color:#666;">(gets the &ldquo;Pipeline Complete&rdquo; email after every run; all emails route here in Dev Mode)</small></label>
             <input type="email" class="config-text-input" id="config-test-email" placeholder="administrator@usc.edu" autocomplete="off">
           </div>
 
@@ -809,10 +811,6 @@
             <textarea class="config-ta" id="config-dashboard-recipients" rows="3" placeholder="dashboard@usc.edu"></textarea>
           </div>
 
-          <div class="config-field">
-            <label for="config-completion-signal-recipient">System Completion Alert Recipient</label>
-            <input type="email" class="config-text-input" id="config-completion-signal-recipient" placeholder="administrator@usc.edu" autocomplete="off">
-          </div>
         </div>
 
         <!-- OPEN window days control REMOVED 2026-09-29 (Barry's decision).
@@ -950,7 +948,9 @@
       recipientsEl.innerHTML =
         'Weekly Attention Report: <strong>record creators + Data Administrator (' + da2 + ')</strong><br>' +
         'Archived-Notes YES/NO: <strong>Data Administrator (' + da2 + ')</strong><br>' +
-        'Progress reports: <strong>' + dr2 + '</strong>';
+        'Progress reports: <strong>' + dr2 + '</strong><br>' +
+        /* Pipeline Complete email goes to the Administrator (2026-10-16; its own setting was removed). */
+        'Pipeline Complete: <strong>Administrator (' + (cfg.ADMIN_EMAIL || '(not set)') + ')</strong>';
     }
   }
 
@@ -1109,7 +1109,7 @@
     const sendWD = !!(document.getElementById('opt-weekly-deficiency') || {}).checked;
     const sendWU = !!(document.getElementById('opt-weekly-update') || {}).checked;
     const reportLines = [];
-    if (sendWD) reportLines.push('  • Weekly Quorum Deficiency');
+    if (sendWD) reportLines.push('  • Weekly Attention Report');
     if (sendWU) reportLines.push('  • Weekly Update');
     const sendMD2 = !!(document.getElementById('opt-monthly-draft') || {}).checked;
     if (sendMD2) {
@@ -1394,7 +1394,6 @@
 
       /* Text inputs */
       setVal('config-test-email',                    cfg.ADMIN_EMAIL                 || '');
-      setVal('config-completion-signal-recipient',   cfg.COMPLETION_SIGNAL_RECIPIENT || '');
       setVal('config-data-admin-email',              cfg.DATA_ADMIN_EMAIL            || '');
 
       /* Textareas — semicolon-separated → one per line */
@@ -1424,7 +1423,8 @@
           recipientsEl.innerHTML =
             'Weekly Attention Report: <strong>record creators + Data Administrator (' + da + ')</strong><br>' +
             'Archived-Notes YES/NO: <strong>Data Administrator (' + da + ')</strong><br>' +
-            'Progress reports: <strong>' + dr + '</strong>';
+            'Progress reports: <strong>' + dr + '</strong><br>' +
+            'Pipeline Complete: <strong>Administrator (' + (cfg.ADMIN_EMAIL || '(not set)') + ')</strong>';
         }
       }
 
@@ -1490,7 +1490,8 @@
         /* LEADERSHIP_RECIPIENTS removed 2026-10-11 with the Leadership Report (the Config Manager
            no longer keeps that key, so the next save deletes the stored value). */
         DASHBOARD_RECIPIENTS:         linesToSemi('config-dashboard-recipients'),
-        COMPLETION_SIGNAL_RECIPIENT:  getVal('config-completion-signal-recipient'),
+        /* COMPLETION_SIGNAL_RECIPIENT removed 2026-10-16: the Pipeline Complete email now goes
+           to ADMIN_EMAIL, and the Config Manager no longer keeps that key. */
         /* DATA_ADMIN_EMAIL (2026-10-10): '' when blank (never null, which would be stored as
            the string "null"); Read Config then falls back to ADMIN_EMAIL. */
         DATA_ADMIN_EMAIL:             getVal('config-data-admin-email'),
