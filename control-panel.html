@@ -727,6 +727,18 @@
       <button class="btn btn-primary" id="btn-rerun" onclick="runRerunAfterFixes()">
         Re-run after fixes
       </button>
+      <!-- Re-run with last week's files (added 2026-10-19). Sends the same report options as
+           Run System plus RERUN_REUSE_LAST=true; the pipeline copies all 6 Quorum files from
+           the newest complete saved set in Box Historic. It stops if any Quorum file is
+           already in the downloads folder, so a new download is never ignored. -->
+      <button class="btn btn-primary" id="btn-reuse-last" onclick="runRerunReuseLast()" style="margin-left:8px;">
+        Re-run with last week's files
+      </button>
+      <p style="margin:8px 0 0;font-size:13px;color:#555;line-height:1.55;">
+        <strong>Re-run with last week's files:</strong> No new downloads needed: reuses all 6 files from the last complete run.
+        Use when nothing changed in Quorum and you just need fresh reports. The Quorum Downloads folder must be empty;
+        if it has any files, use <strong>Re-run after fixes</strong> instead.
+      </p>
     </div>
 
     <div class="warn-note">
@@ -1228,6 +1240,8 @@
       btn.innerHTML = 'Re-run Triggered';
       btn.disabled = true;
       if (runBtn) runBtn.disabled = true;
+      const reuseBtn = document.getElementById('btn-reuse-last');
+      if (reuseBtn) reuseBtn.disabled = true;
       preflightPassed = false;
     } catch (err) {
       const isCors = (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
@@ -1237,6 +1251,72 @@
       showResult('trigger-result', 'error', '&#10007; ' + msg);
       btn.disabled = false;
       btn.innerHTML = 'Re-run after fixes';
+    }
+  }
+
+  /*
+   * runRerunReuseLast() — "Re-run with last week's files" button (added 2026-10-19).
+   *
+   * What: confirms, then calls schaeffer-run with the same report options as
+   *   Run System (buildRunParams()) plus RERUN_REUSE_LAST=true.
+   * Why: to get fresh reports when nothing changed in Quorum, without downloading
+   *   anything. The pipeline (Main Pipeline "IF: Re-run Fill Requested?" branch,
+   *   "Re-run: Pick Recent Historic Sets") requires an EMPTY downloads folder, then
+   *   copies all 6 files from the newest complete saved set in Box Historic. If any
+   *   Quorum file is in the folder it stops and tells the admin to use "Re-run after
+   *   fixes", so new downloads are never silently ignored. Not gated on
+   *   preflightPassed: with an empty folder the pre-flight check reports "not ready".
+   * Affects: btn-reuse-last, btn-rerun, btn-run, trigger-result; reuses
+   *   startCompletionPolling(). The Pipeline Complete email names the saved set used.
+   */
+  async function runRerunReuseLast() {
+    const confirmed = confirm(
+      "Re-run with last week's files?\n\n" +
+      'No new downloads will be used. The system will copy all 6 Quorum files from the last ' +
+      "complete run's saved set and run with the report options chosen above.\n\n" +
+      'The Quorum Downloads folder in Box must be empty. If you downloaded any files, cancel ' +
+      'and use "Re-run after fixes" instead. Do not trigger twice.'
+    );
+    if (!confirmed) return;
+
+    const btn = document.getElementById('btn-reuse-last');
+    const otherBtns = ['btn-run', 'btn-rerun'].map(id => document.getElementById(id));
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Triggering…';
+    showResult('trigger-result', 'loading',
+      '<span class="spinner"></span> Sending re-run trigger to n8n Cloud…');
+
+    try {
+      const params = new URLSearchParams(buildRunParams());
+      params.set('RERUN_REUSE_LAST', 'true');
+      const resp = await fetch(WEBHOOK_TRIGGER + '?' + params.toString(), {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!resp.ok) {
+        throw new Error('Server returned ' + resp.status + ' ' + resp.statusText);
+      }
+
+      const triggerTime = new Date();
+      const stamp = nowStamp();
+      showResult('trigger-result', 'success',
+        "Re-run (last week's files) triggered at: " + stamp +
+        ' &nbsp;<span class="spinner" id="completion-spinner" style="opacity:0.5;"></span>');
+      startCompletionPolling(triggerTime, stamp);
+
+      /* Lock all run buttons for this session to prevent a double trigger */
+      btn.innerHTML = 'Re-run Triggered';
+      btn.disabled = true;
+      otherBtns.forEach(b => { if (b) b.disabled = true; });
+      preflightPassed = false;
+    } catch (err) {
+      const isCors = (err instanceof TypeError) && err.message.toLowerCase().includes('fetch');
+      const msg = isCors
+        ? 'Could not reach n8n Cloud. Make sure you have internet access, then try again. (CORS or network error)'
+        : 'Error: ' + err.message;
+      showResult('trigger-result', 'error', '&#10007; ' + msg);
+      btn.disabled = false;
+      btn.innerHTML = "Re-run with last week's files";
     }
   }
 
