@@ -674,11 +674,13 @@
             <input type="month" id="reportMonth" style="font-size:13px;padding:4px 8px;border:1px solid #ccc;border-radius:3px;">
           </div>
           <p style="margin:5px 0 0;font-size:12px;color:#888;">Builds the interactive monthly report, saves it to the Box Reports folder and emails it as an attachment to the Progress Report(s) Recipients. The weekly email is suppressed on these runs.</p>
-          <!-- Government Affairs report (2026-10-25): sends SEND_GA_REPORT=true with this run. Untick it
-               to re-send only the monthly report without emailing Government Affairs again. -->
+          <!-- Government Affairs report (2026-10-25; Box only since 2026-10-26): sends SEND_GA_REPORT=true
+               with this run. The pipeline saves Government_Affairs_Report_YYYY-MM.csv to the Box Reports
+               folder and never emails it; Government Affairs gets it by hand. Untick it to re-run only
+               the monthly report without saving a new version of the list. -->
           <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:#333;cursor:pointer;user-select:none;">
             <input type="checkbox" id="opt-ga-report" checked style="width:14px;height:14px;accent-color:#990000;">
-            Also send the Government Affairs report (who we met with that month, to the Government Affairs Report Recipients)
+            Also save the Government Affairs report (who we met with that month) to the Box Reports folder, to send by hand
           </label>
         </div>
       </div>
@@ -829,15 +831,9 @@
             <textarea class="config-ta" id="config-dashboard-recipients" rows="3" placeholder="dashboard@usc.edu"></textarea>
           </div>
 
-          <!-- Government Affairs Report Recipients (added 2026-10-25). Stored as GA_REPORT_RECIPIENTS by
-               the Config Manager (';'-separated, one per line here). Gets the monthly compliance list
-               (who the Center met with: name, title, office, date) when "Also send the Government
-               Affairs report" is ticked under Monthly Report. Blank = it goes to the Administrator
-               Email only, as a review copy. Dev Mode always sends it to the Administrator only. -->
-          <div class="config-field">
-            <label for="config-ga-recipients">Government Affairs Report Recipients (one per line) <small style="font-weight:400;color:#666;">(monthly list of government meetings; leave blank to send it to the Administrator Email only)</small></label>
-            <textarea class="config-ta" id="config-ga-recipients" rows="2" placeholder="blank = Administrator Email only"></textarea>
-          </div>
+          <!-- Government Affairs Report Recipients field REMOVED 2026-10-26: the report is saved to the
+               Box Reports folder and sent by hand, so the pipeline has no recipients for it. The
+               Config Manager no longer keeps GA_REPORT_RECIPIENTS (the next save deletes it). -->
 
         </div>
 
@@ -977,7 +973,7 @@
         'Weekly Attention Report: <strong>record creators + Data Administrator (' + da2 + ')</strong><br>' +
         'Archived-Notes YES/NO: <strong>Data Administrator (' + da2 + ')</strong><br>' +
         'Progress reports: <strong>' + dr2 + '</strong><br>' +
-        'Government Affairs report: <strong>' + (cfg.GA_REPORT_RECIPIENTS ? cfg.GA_REPORT_RECIPIENTS.split(';').map(function(x) { return x.trim(); }).filter(Boolean).join(', ') : 'Administrator only (no recipients set)') + '</strong><br>' +
+        'Government Affairs report: <strong>saved to Box Reports, sent by hand</strong><br>' +
         /* Pipeline Complete email goes to the Administrator (2026-10-16; its own setting was removed). */
         'Pipeline Complete: <strong>Administrator (' + (cfg.ADMIN_EMAIL || '(not set)') + ')</strong>';
     }
@@ -1146,7 +1142,7 @@
     if (sendMD2) {
       const month = (document.getElementById('reportMonth') || {}).value || '(no month selected)';
       reportLines.push('  • Monthly Report (' + month + ')');
-      if ((document.getElementById('opt-ga-report') || {}).checked) reportLines.push('  • Government Affairs report (' + month + ')');
+      if ((document.getElementById('opt-ga-report') || {}).checked) reportLines.push('  • Government Affairs report (' + month + ', saved to Box)');
     }
     const reportsNote = reportLines.length
       ? '\n\nReports that will run:\n' + reportLines.join('\n')
@@ -1498,7 +1494,6 @@
 
       /* Textareas — semicolon-separated → one per line */
       setVal('config-dashboard-recipients',  semiToLines(cfg.DASHBOARD_RECIPIENTS));
-      setVal('config-ga-recipients',         semiToLines(cfg.GA_REPORT_RECIPIENTS));   /* 2026-10-25 */
 
       /* (Leadership Report period restore removed 2026-10-11 with the Leadership Report.) */
 
@@ -1525,7 +1520,7 @@
             'Weekly Attention Report: <strong>record creators + Data Administrator (' + da + ')</strong><br>' +
             'Archived-Notes YES/NO: <strong>Data Administrator (' + da + ')</strong><br>' +
             'Progress reports: <strong>' + dr + '</strong><br>' +
-            'Government Affairs report: <strong>' + (cfg.GA_REPORT_RECIPIENTS ? cfg.GA_REPORT_RECIPIENTS.split(';').map(function(x) { return x.trim(); }).filter(Boolean).join(', ') : 'Administrator only (no recipients set)') + '</strong><br>' +
+            'Government Affairs report: <strong>saved to Box Reports, sent by hand</strong><br>' +
             'Pipeline Complete: <strong>Administrator (' + (cfg.ADMIN_EMAIL || '(not set)') + ')</strong>';
         }
       }
@@ -1597,8 +1592,8 @@
         /* DATA_ADMIN_EMAIL (2026-10-10): '' when blank (never null, which would be stored as
            the string "null"); Read Config then falls back to ADMIN_EMAIL. */
         DATA_ADMIN_EMAIL:             getVal('config-data-admin-email'),
-        /* GA_REPORT_RECIPIENTS (2026-10-25): '' when blank, so the pipeline uses the Administrator. */
-        GA_REPORT_RECIPIENTS:         linesToSemi('config-ga-recipients'),
+        /* GA_REPORT_RECIPIENTS removed 2026-10-26: the Government Affairs report is saved to Box and
+           sent by hand (the Config Manager no longer keeps that key). */
         /* OPEN_WINDOW_DAYS deliberately omitted (control removed 2026-09-29).
            Config Manager merges: an absent key keeps its stored value. Do not
            send null here: it would be stored as the string "null". */
