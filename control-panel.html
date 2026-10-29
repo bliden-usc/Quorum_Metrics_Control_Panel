@@ -653,7 +653,7 @@
       <!-- Weekly reports -->
       <div class="report-checkbox-group" style="margin-bottom:12px;">
         <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-deficiency" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Attention Report</label>
-        <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Update</label>
+        <label style="cursor:pointer;"><input type="checkbox" id="opt-weekly-update" style="accent-color:#990000;width:15px;height:15px;cursor:pointer;"> Weekly Dashboard</label>
       </div>
 
       <!-- The Leadership Report checkbox and its Period/Option panel were removed 2026-10-11:
@@ -1137,7 +1137,7 @@
     const sendWU = !!(document.getElementById('opt-weekly-update') || {}).checked;
     const reportLines = [];
     if (sendWD) reportLines.push('  • Weekly Attention Report');
-    if (sendWU) reportLines.push('  • Weekly Update');
+    if (sendWU) reportLines.push('  • Weekly Dashboard');
     const sendMD2 = !!(document.getElementById('opt-monthly-draft') || {}).checked;
     if (sendMD2) {
       const month = (document.getElementById('reportMonth') || {}).value || '(no month selected)';
