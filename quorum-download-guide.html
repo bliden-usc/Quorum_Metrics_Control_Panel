@@ -492,7 +492,7 @@
         Staff
       </div>
       Download Spreadsheet for the list: <strong>"<span class="time-phrase list-name-staff">Last 3 months</span> staffers"</strong>
-      <p style="margin:6px 0 0;font-size:13px;">The Staff list always covers <strong>at least the last 3 months</strong>, even when the reporting period above is "Last Month". A thread stays open for 30 days, and the system re-reads each staffer's party, office and committee from this file until the thread closes. A one-month list drops staffers emailed at the start of that window just before their thread closes, and their party, chamber and committee go blank for good.</p>
+      <p style="margin:6px 0 0;font-size:13px;">The Staff list is always the <strong>last 3 months</strong>, whatever reporting period is selected above. A thread stays open for 30 days, and the system re-reads each staffer's party, office and committee from this file until the thread closes. A one-month list drops staffers emailed at the start of that window just before their thread closes, and their party, chamber and committee go blank for good.</p>
       <p style="margin:6px 0 0;font-size:13px;">The saved staffers search in Quorum must use the filter <strong>"Current and Former"</strong>. When a staffer leaves, Quorum marks them "Former" but keeps their party and office; a current-only search drops them, so their party and office go blank on recent meetings.</p>
     </div>
 
@@ -646,9 +646,9 @@
         Repeat this process separately for Staffers, Contacts, and Officials.
       </p>
       <p style="margin:8px 0 0;font-size:13px;color:#888;">
-        <strong>Staffers list:</strong> in Steps 1 to 3, use the date preset <strong>"In the Last Three Months"</strong>
-        (or "In the Last Year" when the reporting period is 12 months), not "In the last month". Quorum only offers
-        presets, so a 3-month list avoids a custom date range. See section E for why.
+        <strong>Staffers list:</strong> in Steps 1 to 3, always use the date preset <strong>"In the Last Three Months"</strong>,
+        whatever the reporting period. Quorum only offers presets, so a 3-month list avoids a custom date range.
+        See section E for why.
       </p>
     </div>
   </details>
@@ -673,7 +673,8 @@
    *   .list-name-*      — the list name prefix ("Last month")
    *   #a-heading-time   — section A heading phrase ("in the last month")
    *
-   * staffPrefix (2026-11-12): the Staff list never covers less than 3 months.
+   * staffPrefix (2026-11-12): the Staff list is always "Last 3 months", whatever
+   * the reporting period (Barry: there is only a 3-month staffers list).
    * Threads stay OPEN 30 days and are rebuilt from the Staff file each run; a
    * one-month list drops staffers emailed at the start of that window, so their
    * party/chamber/committee went blank just before the thread froze (thread
@@ -683,7 +684,7 @@
   var TIMEFRAME_DATA = {
     month:    { filterPhrase: 'In the last month',    listPrefix: 'Last month',     staffPrefix: 'Last 3 months'  },
     '3months':  { filterPhrase: 'In the last 3 months',  listPrefix: 'Last 3 months',  staffPrefix: 'Last 3 months'  },
-    '12months': { filterPhrase: 'In the last 12 months', listPrefix: 'Last 12 months', staffPrefix: 'Last 12 months' }
+    '12months': { filterPhrase: 'In the last 12 months', listPrefix: 'Last 12 months', staffPrefix: 'Last 3 months'  }
   };
 
   function updateTimeframe() {
